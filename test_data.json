@@ -1,0 +1,184 @@
+{
+    "version": "1.0",
+    "bloodtest": [
+        {
+            "name": "白细胞计数（WBC）",
+            "value": "5.97",
+            "range": "3.5-9.5x109/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "红细胞计数（RBC）",
+            "value": "4.92",
+            "range": "4.3-5.8x1012/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "血红蛋白（HGB）",
+            "value": "148",
+            "range": "130-175g/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "红细胞压积（HCT）",
+            "value": "42.9",
+            "range": "40-50%",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "平均红细胞血红蛋白量（MCH）",
+            "value": "30.1",
+            "range": "27.0-34.0pg",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "平均红细胞体积（MCV）",
+            "value": "87.2",
+            "range": "82.0-100.0f1",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "平均红细胞血红蛋白浓度（MCHC）",
+            "value": "345",
+            "range": "316-354g/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "红细胞分布宽度（RDW-SD）",
+            "value": "37.3",
+            "range": "39.0-52.3f1",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "红细胞分布宽度—变异系数（RDW-CV）",
+            "value": "11.7",
+            "range": "10.0-15.0%",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "血小板分布宽度（PDW）",
+            "value": "10.4",
+            "range": "9.0-18.1f1",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "平均血小板体积（MPV）",
+            "value": "9.21",
+            "range": "9.40-13.50f1",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "大血小板比率（P-LCR）",
+            "value": "19.1",
+            "range": "19.1-47.0%",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "中性粒细胞%（NEUT%）",
+            "value": "48.9",
+            "range": "40.0-75.0%",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "淋巴细胞%（LYMPH%）",
+            "value": "40.4",
+            "range": "20.0-50.0%",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "单核细胞%（MONO%）",
+            "value": "7.9",
+            "range": "3.0-10.0%",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "嗜酸性粒细胞%（EO%）",
+            "value": "1.8",
+            "range": "0.4-8.0%",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "嗜碱性粒细胞%（BASO%）",
+            "value": "1.0",
+            "range": "0.0-1.0%",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "中性粒细胞绝对值（NEUT#）",
+            "value": "2.92",
+            "range": "1.8-6.3x109/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "淋巴细胞绝对值（LYMPH#",
+            "value": "2.41",
+            "range": "1.1-3.2x109/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "单核细胞绝对值（MONO#",
+            "value": "0.47",
+            "range": "0.1-0.6x109/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "嗜酸性粒细胞绝对值（EO#）",
+            "value": "0.11",
+            "range": "0.02-0.52x109/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "嗜碱性粒细胞绝对值（BASO#）",
+            "value": "0.06",
+            "range": "0-0.06x109/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "血小板计数（PLT）",
+            "value": "263",
+            "range": "125-350x109/L",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "中性淋巴比值（NLR）",
+            "value": "1.2",
+            "range": "0.9-3.1",
+            "alias": "Empty",
+            "unit": "Empty"
+        },
+        {
+            "name": "血小板淋巴比值（PLR）",
+            "value": "109.1",
+            "range": "63.0-176.2",
+            "alias": "Empty",
+            "unit": "Empty"
+        }
+    ],
+    "explain": {
+        "used": true,
+        "details": "this is for josn test"
+    }
+}
