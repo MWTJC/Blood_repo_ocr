@@ -1,4 +1,6 @@
 import math
+import re
+
 import numpy as np
 import numpy
 import cv2
@@ -198,7 +200,7 @@ def gamma(img):
     # img = cv2.imread(file_path)  # 原图读取
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     mean = np.mean(img_gray)
-    gamma_val = math.log10(0.7) / math.log10(mean / 255)  # 公式计算gamma
+    gamma_val = math.log10(0.9) / math.log10(mean / 255)  # 公式计算gamma
     # 默认0.5 建议0.2或者0.1，越大越亮
     image_gamma_correct = gamma_core(img, gamma_val)  # gamma变换
     # print(mean, np.mean(image_gamma_correct))
@@ -384,3 +386,42 @@ def image_border(src, dst):
     # PIL转CV2
     img_ret = cv2.cvtColor(numpy.asarray(img_new), cv2.COLOR_RGB2BGR)
     return img_ret
+
+
+def charactor_match_hospital_name(result_list, charactor_need_match):
+    regex_str = f".*?([\u4E00-\u9FA5]+{charactor_need_match})"
+    for i in range(len(result_list)):
+        match_obj = re.match(regex_str, result_list[i])
+        if match_obj:
+            print(match_obj.group(1))
+            break
+    else:
+        print(f'未能判断:{charactor_need_match}')
+        return None
+    return match_obj.group(1)
+
+
+'''
+def match():
+    pattern = re.compile(ur'.+([\u4E00-\u9FA5]+医院).+')
+    str = u''
+    print(pattern.search(str))
+'''
+
+
+def charactor_match_count_name_age(result_list, charactor_need_match):
+    regex_str = f"({charactor_need_match}.*).*"
+    for i in range(len(result_list)):
+        match_obj = re.search(regex_str, result_list[i])
+        if match_obj:
+            print(match_obj.group(1))
+            break
+    else:
+        print(f'未能判断:{charactor_need_match}')
+        return None
+    return match_obj.group(1)
+
+
+def cv_imread_chs(filePath):
+    cv_img=cv2.imdecode(np.fromfile(filePath,dtype=np.uint8),-1)
+    return cv_img

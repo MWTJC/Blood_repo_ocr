@@ -2,25 +2,19 @@
 import base64
 import json
 from io import StringIO, BytesIO
-# from cStringIO import StringIO
-
+import time
 import bson
 import cv2
 import flask
 import numpy
+
 from PIL import Image
 from bson.json_util import dumps
 from flask import Flask, request, Response, jsonify, redirect, json, flash, abort
 from numpy import rint
 from pymongo import MongoClient
 from werkzeug.utils import secure_filename
-import MAIN_PROSS
 
-# import tf_predict
-# from imageFilter import ImageFilter
-
-# import rnn_predict
-# import pd_predict
 import MAIN_PROSS
 import shutil
 import os
@@ -28,7 +22,7 @@ import os
 app = Flask(__name__, static_url_path="")
 app.secret_key = '123456'
 
-# 读取配置文件
+# 读取mongoDB配置文件
 app.config.from_object('config')
 
 # 连接数据库，并获取数据库对象
@@ -37,7 +31,7 @@ db = MongoClient(app.config['DB_HOST'], app.config['DB_PORT']).test
 
 # 将矫正后图片与图片识别结果（JSON）存入数据库
 def save_file(file_str, f, report_data):
-    #content = StringIO(file_str)
+    # content = StringIO(file_str)
     content = file_str
 
     try:
@@ -49,8 +43,11 @@ def save_file(file_str, f, report_data):
         abort(400)
     c = dict(report_data=report_data, content=file_str, filename=secure_filename(f.name),
              mime=mime)
-    db.files.save(c)
-
+    try:
+        db.files.save(c)
+    except:
+        print('DB_ERR')
+        abort(400)
     return c['_id'], c['filename']
 
 
@@ -61,6 +58,7 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload():
+    time_start = time.time()
     if request.method == 'POST':
         if 'imagefile' not in request.files:
             flash('No file part')
@@ -73,23 +71,41 @@ def upload():
             # pil = StringIO(imgfile)
             # pil = Image.open(pil)
             # print 'imgfile:', imgfile
-            img = cv2.imdecode(numpy.frombuffer(imgfile.read(), numpy.uint8), cv2.IMREAD_UNCHANGED)
-
+            img = cv2.imdecode(numpy.frombuffer(imgfile.read(), numpy.uint8), cv2.IMREAD_COLOR)
+            '''
             cv2.imwrite("tes.jpg", img)
+            img2 = cv2.imread('tes.jpg')
             # todo 是否需要本地存储中转
-            report_data = MAIN_PROSS.main_pross("tes.jpg", 'Feature_IMG/REPO.jpg')
-            if report_data is 'ocrerr':
+            '''
+            # report_data = MAIN_PROSS.main_pross(img, 'Feature_IMG/zs-blood-normal.jpg')
+            report_data = MAIN_PROSS.main_pross(img)
+            # 判断是否报错
+            if report_data.isupper():
+            #if isinstance(report_data, str):
                 data = {
-                    'error':'OCR故障',
+                    'error': report_data,
+                }
+                flash(report_data)
+                return jsonify(data)
+            '''
+            if report_data is 'OCR_ERR':
+                data = {
+                    'error': 'OCR故障',
                 }
                 flash('OCR故障')
                 return jsonify(data)
-            if report_data is None:
+            elif report_data is 'OCR_OFF_LINE':
+                data = {
+                    "error": 'OCR离线',
+                }
+                return jsonify(data)
+            elif report_data is None:
                 data = {
                     "error": '主算法意外结束',
                 }
                 return jsonify(data)
-            #todo 开始更改
+            '''
+            # todo 开始更改
             path_img_toDB = 'temp_pics/region.jpg'
 
             with open(path_img_toDB, "rb") as f:
@@ -99,7 +115,7 @@ def upload():
                 else:
 
                     '''
-                        定义file_str存储矫正后的图片文件f的内容（str格式）,方便之后对图片做二次透视以及将图片内容存储至数据库中
+                        定义file_str存储矫正后的图片文件f的内容（str格式）,方便之后将图片内容存储至数据库中
                     '''
                     file_str = f.read()
                     # file_str = MAIN_PROSS.cv2_to_base64(cv2.imread(path_img_toDB))
@@ -111,7 +127,10 @@ def upload():
                 data = {
                     "templates": templates,
                 }
+            time_end = time.time()
+            print('totally cost', time_end - time_start)
             return jsonify(data)
+
             # return render_template("result.html", filename=filename, fileid=fid)
     # return render_template("error.html", errormessage="No POST methods")
     return jsonify({"error": "No POST methods"})
@@ -158,6 +177,7 @@ def get_report(fid):
     except bson.errors.InvalidId:
         flask.abort(404)
 
+
 '''
 def update_report(fid, ss):
     # load json example
@@ -180,13 +200,6 @@ def update_report(fid, ss):
     print(report_data)
 '''
 
-def check_charset(file_path):
-    import chardet
-    with open(file_path, "rb") as f:
-        data = f.read(4)
-        charset = chardet.detect(data)['encoding']
-    return charset
-
 if __name__ == '__main__':
     shutil.rmtree('ocr_result')
     shutil.rmtree('temp_pics')
@@ -194,4 +207,3 @@ if __name__ == '__main__':
     os.mkdir('temp_pics')
 
     app.run(host=app.config['SERVER_HOST'], port=app.config['SERVER_PORT'])
-
