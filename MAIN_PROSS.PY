@@ -1,3 +1,4 @@
+# coding=utf-8
 import re
 from pprint import pprint
 # from paddleocr import PaddleOCR, draw_ocr
@@ -47,26 +48,17 @@ def net_OCR(cvimg):
     return r
 
 
-# def main_pross(img_orig_path, img_feature_path):
 def main_pross(img):
-    # img_orig_path = 'Input_IMG/Input.jpg'
-    # img_feature_path = 'Feature_IMG/REPO.jpg'
-    # img_path = 'REPO1.jpg'
-    # img_feature = cv2.imread(img_feature_path)
-
-    # img_org = cv2.imread(img_orig_path)
-
     img_org = img
-
     img_gamma = PRE_pross.gamma(img_org)
 
     # 判断所属医院以及检验项目
     pre_response = net_OCR(img_gamma)
     if pre_response is 'OCROFFLINE':
-        return 'OCROFFLINE'
+        return '错误：OCR离线'
     elif len(pre_response.json()["results"]) == 0:
         print('OCRERR')
-        return 'OCRERR'
+        return '错误：OCR没有正常工作'
     # pprint(pre_response.json()["results"][0]["data"])
     report_overview = []
     for i in range(len(pre_response.json()["results"][0]["data"])):
@@ -75,12 +67,17 @@ def main_pross(img):
     # 取出医院关键词
     hospital = PRE_pross.charactor_match_hospital_name(report_overview, '医院')
     path_prefix = hospital
+    # ocr会把间隔大的文字分开识别，大概率优先识别为中文字符
     patient_name = PRE_pross.charactor_match_count_name_age(report_overview, '名：')
+    # 以防万一把所有冒号前的东西重新统一
+    patient_name = re.sub(r'.*：', '姓名：', patient_name)
     patient_sex = PRE_pross.charactor_match_count_name_age(report_overview, '别：')
+    patient_sex = re.sub(r'.*：', '性别：', patient_sex)
     patient_age = PRE_pross.charactor_match_count_name_age(report_overview, '龄：')
+    patient_age = re.sub(r'.*：', '年龄：', patient_age)
     if hospital is None:
         print('未能识别医院信息')
-        return 'UNRECOGNIZEDHOSPITAL'
+        return '错误：未能识别所属医院，请拍摄完整的报告单图片'
 
     # 读取报告类型关键词
     blood_normal_keywords_conf_path = 'conf/blood-normal-report-keywords.conf'
@@ -100,12 +97,18 @@ def main_pross(img):
     else:
         print('不是血常规')
         is_blood_test = "不是血常规"
-        return 'ISNOTBLOODTEST'
+        return '错误：目前仅支持血常规，请勿上传其他类型报告'
 
     conf_path = f'conf/{path_prefix}{path_suffix}.conf'
+    if os.path.exists(conf_path) is False:
+        print('配置文件不存在')
+        return '错误：目前暂不支持此医院的此种报告'
     img_feature_path = f'Feature_IMG/{path_prefix}{path_suffix}.jpg'
+    if os.path.exists(img_feature_path) is False:
+        print('特征图片不存在')
+        return '错误：缺少特征图片，无法匹配，请等候开发者后续维护'
     # 读取配置
-    #conf_path = 'conf/bj-aerospace-blood-normal.conf'
+    # conf_path = 'conf/bj-aerospace-blood-normal.conf'
     conf = configparser_custom()
     conf.read(conf_path, 'UTF-8')
     boxes_conf = conf.items("boxes")
@@ -117,17 +120,21 @@ def main_pross(img):
         box_list[w] = list(map(int, box_list[w]))
 
     # 特征匹配准备裁剪
-    #img_template = cv2.imread(img_feature_path, 0)
+    # img_template = cv2.imread(img_feature_path, 0)
     img_template = PRE_pross.cv_imread_chs(img_feature_path)
+    # 灰度化
+    img_template = cv2.cvtColor(img_template, cv2.COLOR_BGR2GRAY)
     img_need_pross = cv2.cvtColor(img_gamma, cv2.COLOR_BGR2GRAY)
 
     img_small_1k, ratio = PRE_pross.zoom_to_1k(img_need_pross)  # 屏幕匹配提速
 
     # [旧]correct_points, knn_result = knn_match_old(img_template, img_small_1k, demo)
-    correct_matrix, knn_result = PRE_pross.knn_match_new(img_template, img_small_1k, 0)
+    correct_matrix, knn_result = PRE_pross.knn_match_new(img_des=img_template,
+                                                         img_need_knn=img_small_1k,
+                                                         demo=0)
     if knn_result == 2874734:
-        return 'KNNFAILED'
-    # 以下是新变换办法，直接用单应性矩阵变换后直接裁剪得到目标图像
+        return '错误：未能成功探测布局，建议重新拍摄'
+    # 以下是新变换办法，直接用单应性矩阵变换后直接裁剪得到目标图像（能解决老办法不能自动旋转的问题）
     correct_matrix[0][2] = correct_matrix[0][2] / ratio
     correct_matrix[1][2] = correct_matrix[1][2] / ratio
     correct_matrix[2][0] = correct_matrix[2][0] * ratio
@@ -148,7 +155,7 @@ def main_pross(img):
     # 下面开始按照比例裁剪识别区域
     img_element = PRE_pross.mask_processing_new(img_screen_cut,
                                                 box_list,
-                                                demo_or_not=1,
+                                                demo_or_not=0,
                                                 type_char='repo',
                                                 out_name='report',
                                                 output_dir='DEMO/')  # 根据配置裁剪数据区
@@ -160,10 +167,10 @@ def main_pross(img):
     for n in range(len(img_element)):
         response = net_OCR(img_element[n])
         if response is 'OCROFFLINE':
-            return 'OCROFFLINE'
+            return '错误：OCR离线'
         elif len(response.json()["results"]) == 0:
             print('OCRERR')
-            return 'OCRERR'
+            return '错误：OCR未正常工作'
 
         print(response.json()["results"][0]["data"])
         answer.append(response)
@@ -179,8 +186,10 @@ def main_pross(img):
             print('无缺损')
         else:
             print('右边识别不完全')
+            return '错误：识别异常，数据量不匹配，建议重新拍摄'
     else:
         print('左边识别不完全')
+        return '错误：识别异常，数据量不匹配，建议重新拍摄'
 
     # print(answer[1][0]['data'][1]['text'])
     # 以下开始处理识别回传数据
@@ -200,9 +209,9 @@ def main_pross(img):
     else:
         pass
         # print('err')
-    if len(name_out)==0:
+    if len(name_out) == 0:
         print('无数据')
-        return 'EMPTYDATA'
+        return '错误：没有识别到有效数据'
     # 以下开始json化
     bloodtest_list = []
     for i in range(len(name_out)):
@@ -219,7 +228,7 @@ def main_pross(img):
     bloodtest_single["name"] = hospital
     bloodtest_single["value"] = is_blood_test
     bloodtest_single["range"] = patient_name
-    bloodtest_single["alias"] = '病人信息2'
+    bloodtest_single["alias"] = '空白信息2'
     bloodtest_single["unit"] = patient_age
     bloodtest_list.append(bloodtest_single)
     test_dict = {

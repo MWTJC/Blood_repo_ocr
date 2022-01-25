@@ -1,3 +1,4 @@
+# coding=utf-8
 import math
 import re
 
@@ -117,7 +118,7 @@ def knn_match_new(img_des, img_need_knn, demo):
             dst = cv2.perspectiveTransform(pts, M)
             # print(dst)
             # 画出变换后的边框
-            img_need_knn = cv2.polylines(img_need_knn, [np.int32(dst)], True, (255, 0, 0), 3, cv2.LINE_AA)
+            img_need_knn = cv2.polylines(img_need_knn, [np.int32(dst)], True, (0, 0, 255), 1, cv2.LINE_AA)
 
     else:
         print("不甚匹配 - %d/%d" % (len(good), MIN_MATCH_COUNT))
@@ -129,12 +130,13 @@ def knn_match_new(img_des, img_need_knn, demo):
         # matchesMask = None
     if demo == 1:
         # 显示匹配结果
-        draw_params = dict(matchColor=(255, 255, 0),  # 黄线绘制变换框
+        draw_params = dict(matchColor=(0, 255, 0),  # 绿色绘制线条
                            singlePointColor=None,
                            matchesMask=matchesMask,  # 仅绘制有效
                            flags=2)
         img3 = cv2.drawMatches(img_des, kp1, img_need_knn, kp2, good, None, **draw_params)
-        plt.imshow(img3, 'gray'), plt.show()
+        cv2.imwrite('DEMO/knn.jpg', img3)
+        # plt.imshow(img3, 'gray'), plt.show()
 
     # print('匹配完毕...')
     return np.linalg.inv(M), result
@@ -401,14 +403,6 @@ def charactor_match_hospital_name(result_list, charactor_need_match):
     return match_obj.group(1)
 
 
-'''
-def match():
-    pattern = re.compile(ur'.+([\u4E00-\u9FA5]+医院).+')
-    str = u''
-    print(pattern.search(str))
-'''
-
-
 def charactor_match_count_name_age(result_list, charactor_need_match):
     regex_str = f"({charactor_need_match}.*).*"
     for i in range(len(result_list)):
@@ -422,6 +416,15 @@ def charactor_match_count_name_age(result_list, charactor_need_match):
     return match_obj.group(1)
 
 
+def charactor_match_chinese_head(result_list):
+    regex_str = '^[\u4E00-\u9FA5].*'
+    match_obj = re.match(regex_str, result_list)
+    if match_obj:
+        return True
+    else:
+        return False
+
+
 def cv_imread_chs(filePath):
-    cv_img=cv2.imdecode(np.fromfile(filePath,dtype=np.uint8),-1)
+    cv_img = cv2.imdecode(np.fromfile(filePath,dtype=np.uint8),-1)
     return cv_img

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import base64
 import json
-from io import StringIO, BytesIO
 import time
 import bson
 import cv2
@@ -15,9 +14,11 @@ from numpy import rint
 from pymongo import MongoClient
 from werkzeug.utils import secure_filename
 
-import MAIN_PROSS
 import shutil
 import os
+
+import PRE_pross
+import MAIN_PROSS
 
 app = Flask(__name__, static_url_path="")
 app.secret_key = '123456'
@@ -80,8 +81,9 @@ def upload():
             # report_data = MAIN_PROSS.main_pross(img, 'Feature_IMG/zs-blood-normal.jpg')
             report_data = MAIN_PROSS.main_pross(img)
             # 判断是否报错
-            if report_data.isupper():
-            #if isinstance(report_data, str):
+
+            err_or_not = PRE_pross.charactor_match_chinese_head(report_data)
+            if err_or_not is True:
                 data = {
                     'error': report_data,
                 }
@@ -94,16 +96,6 @@ def upload():
                 }
                 flash('OCR故障')
                 return jsonify(data)
-            elif report_data is 'OCR_OFF_LINE':
-                data = {
-                    "error": 'OCR离线',
-                }
-                return jsonify(data)
-            elif report_data is None:
-                data = {
-                    "error": '主算法意外结束',
-                }
-                return jsonify(data)
             '''
             # todo 开始更改
             path_img_toDB = 'temp_pics/region.jpg'
@@ -113,7 +105,6 @@ def upload():
                     pass
                     rint('Error! f is None!')
                 else:
-
                     '''
                         定义file_str存储矫正后的图片文件f的内容（str格式）,方便之后将图片内容存储至数据库中
                     '''
@@ -201,9 +192,12 @@ def update_report(fid, ss):
 '''
 
 if __name__ == '__main__':
+    # 检查并重置工作文件夹
     shutil.rmtree('ocr_result')
     shutil.rmtree('temp_pics')
+    shutil.rmtree('DEMO/mask')
     os.mkdir('ocr_result')
     os.mkdir('temp_pics')
+    os.mkdir('DEMO/mask')
 
     app.run(host=app.config['SERVER_HOST'], port=app.config['SERVER_PORT'])

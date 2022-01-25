@@ -1,3 +1,4 @@
+# coding=utf-8
 import MAIN_PROSS
 import cv2
 from pprint import pprint

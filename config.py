@@ -1,4 +1,4 @@
-
+# coding=utf-8
 ALLOWED_EXTENSIONS = set(['png', 'jpeg', 'jpg'])
 
 DB_HOST = 'localhost'
