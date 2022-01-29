@@ -4,6 +4,6 @@ import cv2
 from pprint import pprint
 
 if __name__ == '__main__':
-    img = cv2.imread('R.jpg')
+    img = cv2.imread('region.jpg')
     res = MAIN_PROSS.net_OCR(img)
     pprint(res.json()["results"][0]["data"])

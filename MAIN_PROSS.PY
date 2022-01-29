@@ -1,21 +1,19 @@
 # coding=utf-8
-import re
+
+# from PIL import Image
 from pprint import pprint
-# from paddleocr import PaddleOCR, draw_ocr
+import re
 import requests
 import json
 import cv2
 import base64
-# from PIL import Image
-import configparser
 import matplotlib.pyplot as plt
-
 plt.switch_backend('agg')
-import PRE_pross
 import shutil
 import os
-
 from collections import defaultdict, OrderedDict
+import PRE_pross
+import configparser
 
 
 class configparser_custom(configparser.ConfigParser):  # 解决默认被转换为小写问题
@@ -68,6 +66,7 @@ def main_pross(cvimg):
     hospital = PRE_pross.charactor_match_hospital_name(report_overview, '医院')
     path_prefix = hospital
     # ocr会把间隔大的文字分开识别，大概率优先识别为中文字符
+    '''
     patient_name = PRE_pross.charactor_match_count_name_age(report_overview, '名：')
     if patient_name:
         # 以防万一把所有冒号前的东西重新统一
@@ -84,13 +83,13 @@ def main_pross(cvimg):
         patient_age = re.sub(r'.*：', '年龄：', patient_age)
     else:
         patient_name = '年龄：'
-
+    '''
     if hospital is None:
         print('未能识别医院信息')
         return '错误：未能识别所属医院，请拍摄完整的报告单图片'
 
     # 读取报告类型关键词
-    blood_normal_keywords_conf_path = 'conf/blood-normal-report-keywords.conf'
+    blood_normal_keywords_conf_path = 'conf/[关键词]血常规.conf'
     blood_keys = configparser_custom()
     blood_keys.read(blood_normal_keywords_conf_path, 'UTF-8')
     blood_keys_read = blood_keys.items("keywords")
@@ -156,6 +155,35 @@ def main_pross(cvimg):
     img_screen_cut_1k, ratio_outdate = PRE_pross.zoom_to_1k(img_screen_cut)
 
     cv2.imwrite('temp_pics/region.jpg', img_screen_cut_1k)  # 适配开源血常规
+
+    # 将用户信息识别滞后，提升识别概率
+    usr_info_response = net_OCR(img_screen_cut_1k)
+    if usr_info_response is 'OCROFFLINE':
+        return '错误：OCR离线'
+    elif len(usr_info_response.json()["results"]) == 0:
+        print('OCRERR')
+        return '错误：OCR没有正常工作'
+    # pprint(usr_info_response.json()["results"][0]["data"])
+    usr_info_overview = []
+    for i in range(len(usr_info_response.json()["results"][0]["data"])):
+        usr_info_overview.append(usr_info_response.json()["results"][0]["data"][i]['text'])
+    patient_name = PRE_pross.charactor_match_count_name_age(usr_info_overview, '名：')
+    if patient_name:
+        # 以防万一把所有冒号前的东西重新统一
+        patient_name = re.sub(r'.*：', '姓名：', patient_name)
+    else:
+        patient_name = '姓名：'
+    patient_sex = PRE_pross.charactor_match_count_sex(usr_info_overview, '别：')
+    if patient_sex:
+        patient_sex = re.sub(r'.*：', '性别：', patient_sex)
+    else:
+        patient_name = '性别：'
+    patient_age = PRE_pross.charactor_match_count_name_age(usr_info_overview, '龄：')
+    if patient_age:
+        patient_age = re.sub(r'.*：', '年龄：', patient_age)
+    else:
+        patient_name = '年龄：'
+    # 用户信息识别结束
 
     img_screen_cut = PRE_pross.length_width_ratio_correct(img_template=img_template,
                                                           img_input=img_screen_cut)  # 长宽比校正
@@ -228,15 +256,15 @@ def main_pross(cvimg):
         bloodtest_single["name"] = name_out[i]
         bloodtest_single["value"] = value_out[i]
         bloodtest_single["range"] = range_out[i]
-        bloodtest_single["alias"] = "Empty"
-        bloodtest_single["unit"] = "Empty"
+        bloodtest_single["alias"] = ''
+        bloodtest_single["unit"] = ''
         bloodtest_list.append(bloodtest_single)
 
     # 加入附加信息
     bloodtest_single = OrderedDict()
-    bloodtest_single["name"] = hospital
-    bloodtest_single["value"] = is_blood_test
-    bloodtest_single["range"] = patient_name
+    bloodtest_single["name"] = f'{hospital}+{is_blood_test}'
+    bloodtest_single["value"] = patient_name
+    bloodtest_single["range"] = patient_sex
     bloodtest_single["alias"] = '空白信息2'
     bloodtest_single["unit"] = patient_age
     bloodtest_list.append(bloodtest_single)
