@@ -71,13 +71,13 @@ def four_point_transform(image, pts):
 
 
 # 核心
-def knn_match_new(img_des, img_need_knn, demo):
+def knn_match_new(template_img, img_need_match, demo):
     MIN_MATCH_COUNT = 10
     # SIFT检测角点
     sift = cv2.SIFT_create()
     # 关键点和特征值
-    kp1, des1 = sift.detectAndCompute(img_des, None)
-    kp2, des2 = sift.detectAndCompute(img_need_knn, None)
+    kp1, des1 = sift.detectAndCompute(template_img, None)
+    kp2, des2 = sift.detectAndCompute(img_need_match, None)
     # FLANN匹配
     index_params = dict(algorithm=1, trees=5)
     search_params = dict(checks=50)
@@ -111,19 +111,19 @@ def knn_match_new(img_des, img_need_knn, demo):
             # ravel方法将数据降维处理，最后并转换成列表格式
             matchesMask = mask.ravel().tolist()
             # 获取img1的图像尺寸
-            h, w = img_des.shape
+            h, w = template_img.shape
             # pts是图像img1的四个顶点
             pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
             # 计算变换后的四个顶点坐标位置
             dst = cv2.perspectiveTransform(pts, M)
             # print(dst)
             # 画出变换后的边框
-            img_need_knn = cv2.polylines(img_need_knn, [np.int32(dst)], True, (0, 0, 255), 1, cv2.LINE_AA)
+            img_need_match = cv2.polylines(img_need_match, [np.int32(dst)], True, (0, 0, 255), 1, cv2.LINE_AA)
 
     else:
         print("不甚匹配 - %d/%d" % (len(good), MIN_MATCH_COUNT))
         if demo == 1:
-            plt.imshow(img_need_knn, 'gray'), plt.show()
+            plt.imshow(img_need_match, 'gray'), plt.show()
         dst = 0
         result = 2874734
         return dst, result
@@ -132,11 +132,10 @@ def knn_match_new(img_des, img_need_knn, demo):
         # 显示匹配结果
         draw_params = dict(matchColor=(0, 255, 0),  # 绿色绘制线条
                            singlePointColor=None,
-                           matchesMask=matchesMask,  # 仅绘制有效
+                           matchesMask=matchesMask,  # 仅绘制有效匹配
                            flags=2)
-        img3 = cv2.drawMatches(img_des, kp1, img_need_knn, kp2, good, None, **draw_params)
+        img3 = cv2.drawMatches(template_img, kp1, img_need_match, kp2, good, None, **draw_params)
         cv2.imwrite('DEMO/knn.jpg', img3)
-        # plt.imshow(img3, 'gray'), plt.show()
 
     # print('匹配完毕...')
     return np.linalg.inv(M), result
@@ -153,16 +152,6 @@ def get_knn_result(orig, screenCnt, flip_or_not, demo_or_not):
     '''
     return warped
     # print(ratio)
-
-
-'''
-def ocr_recognition(img):
-
-    text = pytesseract.image_to_string(img, lang='eng',
-                                       config=' --psm 6 --oem 3 -c tessedit_char_whitelist=0123456789()/.ml%:-').strip()
-    # print(text, file=data)
-    return text
-'''
 
 
 # 长宽比校正
@@ -198,13 +187,13 @@ def gamma_core(img, gamma_val):  # gamma函数处理
     return cv2.LUT(img, gamma_table)  # 图片颜色查表。另外可以根据光强（颜色）均匀化原则设计自适应算法。
 
 
-def gamma(img):
+def gamma(cvimg):
     # img = cv2.imread(file_path)  # 原图读取
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img_gray = cv2.cvtColor(cvimg, cv2.COLOR_BGR2GRAY)
     mean = np.mean(img_gray)
     gamma_val = math.log10(0.9) / math.log10(mean / 255)  # 公式计算gamma
     # 默认0.5 建议0.2或者0.1，越大越亮
-    image_gamma_correct = gamma_core(img, gamma_val)  # gamma变换
+    image_gamma_correct = gamma_core(cvimg, gamma_val)  # gamma变换
     # print(mean, np.mean(image_gamma_correct))
     return image_gamma_correct
 
@@ -250,16 +239,16 @@ def zoom_to_1k(img):
     return img, ratio
 
 
-def crop_xls_zoom_new(boxes_xy, scaling_ratio):  # 坐标读取并缩放
+def crop_xls_zoom_new(boxes_coordinate_xy, scaling_ratio):  # 坐标读取并缩放
     x0 = []
     x1 = []
     y0 = []
     y1 = []
-    for k in range(len(boxes_xy)):
-        x0.append(boxes_xy[k][0])
-        x1.append(boxes_xy[k][1])
-        y0.append(boxes_xy[k][2])
-        y1.append(boxes_xy[k][3])
+    for k in range(len(boxes_coordinate_xy)):
+        x0.append(boxes_coordinate_xy[k][0])
+        x1.append(boxes_coordinate_xy[k][1])
+        y0.append(boxes_coordinate_xy[k][2])
+        y1.append(boxes_coordinate_xy[k][3])
         if x0[k] > x1[k]:
             x0[k], x1[k] = x1[k], x0[k]
         if y0[k] > y1[k]:
@@ -271,14 +260,15 @@ def crop_xls_zoom_new(boxes_xy, scaling_ratio):  # 坐标读取并缩放
     return y0a, y1a, x0a, x1a
 
 
-def mask_processing_new(image, boxes_xy, demo_or_not, type_char, output_dir, out_name):
+def mask_processing_new(img_input, boxes_coordinate_xy, demo_or_not, type_char, output_dir, out_name):
     if demo_or_not == 1:
-        print('剪裁读入：', image.shape[:2])
-    image_1k, ratio = zoom_to_1k(image)  # xls坐标以1k为标准，将坐标缩放，适配图片，此处确定缩放比例
-    y0a, y1a, x0a, x1a = crop_xls_zoom_new(boxes_xy, ratio)
+        print('剪裁读入：', img_input.shape[:2])
+    image_1k, ratio = zoom_to_1k(img_input)  # xls坐标以1k为标准，将坐标缩放，适配图片，此处确定缩放比例
+    y0a, y1a, x0a, x1a = crop_xls_zoom_new(boxes_coordinate_xy=boxes_coordinate_xy,
+                                           scaling_ratio=ratio)
     dst = []
-    for k in range(len(boxes_xy)):
-        dst.append(image[int(y0a[k]):int(y1a[k]), int(x0a[k]):int(x1a[k])])  # 裁剪
+    for k in range(len(boxes_coordinate_xy)):
+        dst.append(img_input[int(y0a[k]):int(y1a[k]), int(x0a[k]):int(x1a[k])])  # 裁剪
 
         if demo_or_not == 1:
             n = output_dir + f'mask/' + out_name + f'_{type_char}_num{k:01}.jpg'
@@ -286,7 +276,7 @@ def mask_processing_new(image, boxes_xy, demo_or_not, type_char, output_dir, out
     return dst
 
 
-def image_border(src, dst):
+def image_border(img_input, dst):
     '''
     src: (str) 需要加边框的图片路径
     dst: (str) 加边框的图片保存路径
@@ -301,7 +291,7 @@ def image_border(src, dst):
     color: (int or 3-tuple) 边框颜色 (默认是0, 表示黑色; 也可以设置为三元组表示RGB颜色)
     '''
     # cv2转PIL
-    img_ori = Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB))
+    img_ori = Image.fromarray(cv2.cvtColor(img_input, cv2.COLOR_BGR2RGB))
 
     color = (255, 255, 255)
     # 读取图片
@@ -423,6 +413,22 @@ def charactor_match_chinese_head(result_list):
         return True
     else:
         return False
+
+
+def charactor_match_count_sex(result_list, charactor_need_match):
+    regex_str = f"({charactor_need_match}.*).*"
+    for i in range(len(result_list)):
+        match_obj = re.search(regex_str, result_list[i])
+        if match_obj:
+            match_obj_black = re.search('.*自费', result_list[i])
+            if match_obj_black:
+                continue
+            print(match_obj.group(1))
+            break
+    else:
+        print(f'未能判断:{charactor_need_match}')
+        return None
+    return match_obj.group(1)
 
 
 def cv_imread_chs(filePath):

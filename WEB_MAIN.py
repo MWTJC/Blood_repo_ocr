@@ -78,7 +78,7 @@ def upload():
             img2 = cv2.imread('tes.jpg')
             # todo 是否需要本地存储中转
             '''
-            # report_data = MAIN_PROSS.main_pross(img, 'Feature_IMG/zs-blood-normal.jpg')
+
             report_data = MAIN_PROSS.main_pross(img)
             # 判断是否报错
 

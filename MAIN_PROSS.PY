@@ -48,8 +48,8 @@ def net_OCR(cvimg):
     return r
 
 
-def main_pross(img):
-    img_org = img
+def main_pross(cvimg):
+    img_org = cvimg
     img_gamma = PRE_pross.gamma(img_org)
 
     # 判断所属医院以及检验项目
@@ -69,12 +69,22 @@ def main_pross(img):
     path_prefix = hospital
     # ocr会把间隔大的文字分开识别，大概率优先识别为中文字符
     patient_name = PRE_pross.charactor_match_count_name_age(report_overview, '名：')
-    # 以防万一把所有冒号前的东西重新统一
-    patient_name = re.sub(r'.*：', '姓名：', patient_name)
-    patient_sex = PRE_pross.charactor_match_count_name_age(report_overview, '别：')
-    patient_sex = re.sub(r'.*：', '性别：', patient_sex)
+    if patient_name:
+        # 以防万一把所有冒号前的东西重新统一
+        patient_name = re.sub(r'.*：', '姓名：', patient_name)
+    else:
+        patient_name = '姓名：'
+    patient_sex = PRE_pross.charactor_match_count_sex(report_overview, '别：')
+    if patient_sex:
+        patient_sex = re.sub(r'.*：', '性别：', patient_sex)
+    else:
+        patient_name = '性别：'
     patient_age = PRE_pross.charactor_match_count_name_age(report_overview, '龄：')
-    patient_age = re.sub(r'.*：', '年龄：', patient_age)
+    if patient_age:
+        patient_age = re.sub(r'.*：', '年龄：', patient_age)
+    else:
+        patient_name = '年龄：'
+
     if hospital is None:
         print('未能识别医院信息')
         return '错误：未能识别所属医院，请拍摄完整的报告单图片'
@@ -129,8 +139,8 @@ def main_pross(img):
     img_small_1k, ratio = PRE_pross.zoom_to_1k(img_need_pross)  # 屏幕匹配提速
 
     # [旧]correct_points, knn_result = knn_match_old(img_template, img_small_1k, demo)
-    correct_matrix, knn_result = PRE_pross.knn_match_new(img_des=img_template,
-                                                         img_need_knn=img_small_1k,
+    correct_matrix, knn_result = PRE_pross.knn_match_new(template_img=img_template,
+                                                         img_need_match=img_small_1k,
                                                          demo=0)
     if knn_result == 2874734:
         return '错误：未能成功探测布局，建议重新拍摄'
@@ -147,21 +157,20 @@ def main_pross(img):
 
     cv2.imwrite('temp_pics/region.jpg', img_screen_cut_1k)  # 适配开源血常规
 
-    # img_screen_cut, ratio_2k = zoom_to_2k(img_screen_cut)  # 放大以方便识别
-
-    # cv2.imwrite('TEMP/2k_result.jpg', img_screen_cut)
-    img_screen_cut = PRE_pross.length_width_ratio_correct(img_template, img_screen_cut)  # 长宽比校正
+    img_screen_cut = PRE_pross.length_width_ratio_correct(img_template=img_template,
+                                                          img_input=img_screen_cut)  # 长宽比校正
 
     # 下面开始按照比例裁剪识别区域
-    img_element = PRE_pross.mask_processing_new(img_screen_cut,
-                                                box_list,
+    img_element = PRE_pross.mask_processing_new(img_input=img_screen_cut,
+                                                boxes_coordinate_xy=box_list,
                                                 demo_or_not=0,
                                                 type_char='repo',
-                                                out_name='report',
-                                                output_dir='DEMO/')  # 根据配置裁剪数据区
+                                                output_dir='DEMO/',
+                                                out_name='report')  # 根据配置裁剪数据区
     # 拓宽防止ocr不识别的bug
     for i in range(len(img_element)):
-        img_element[i] = PRE_pross.image_border(img_element[i], '0')
+        img_element[i] = PRE_pross.image_border(img_input=img_element[i],
+                                                dst='0')
     # 取得识别结果
     answer = []
     for n in range(len(img_element)):
@@ -246,9 +255,15 @@ def main_pross(img):
 
 
 if __name__ == '__main__':
-    # 清空OCR
+    # 清空临时文件
     shutil.rmtree('ocr_result')
+    shutil.rmtree('temp_pics')
+    shutil.rmtree('DEMO/mask')
     os.mkdir('ocr_result')
+    os.mkdir('temp_pics')
+    os.mkdir('DEMO/mask')
+
     img_orig_path = 'Input_IMG/zs-blood-normal.jpg'
-    img_feature_path = 'Feature_IMG/zs-blood-normal.jpg'
-    main_pross(img_orig_path)
+    img_input = PRE_pross.cv_imread_chs(img_orig_path)
+
+    main_pross(img_input)
