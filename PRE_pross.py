@@ -67,6 +67,7 @@ def four_point_transform(image, pts):
     # 返回变换后的结果
     return warped
 
+
 # 透视变换结束
 
 
@@ -181,18 +182,17 @@ def dilate(img):  # 膨胀
     return dil
 
 
-def gamma_core(img, gamma_val):  # gamma函数处理
-    gamma_table = [np.power(x / 255.0, gamma_val) * 255.0 for x in range(256)]  # 建立映射表
-    gamma_table = np.round(np.array(gamma_table)).astype(np.uint8)  # 颜色值为整数
-    return cv2.LUT(img, gamma_table)  # 图片颜色查表。另外可以根据光强（颜色）均匀化原则设计自适应算法。
-
-
 def gamma(cvimg):
+    def gamma_core(img, gamma_val):  # gamma函数处理
+        gamma_table = [np.power(x / 255.0, gamma_val) * 255.0 for x in range(256)]  # 建立映射表
+        gamma_table = np.round(np.array(gamma_table)).astype(np.uint8)  # 颜色值为整数
+        return cv2.LUT(img, gamma_table)  # 图片颜色查表。另外可以根据光强（颜色）均匀化原则设计自适应算法。
+
     # img = cv2.imread(file_path)  # 原图读取
     img_gray = cv2.cvtColor(cvimg, cv2.COLOR_BGR2GRAY)
     mean = np.mean(img_gray)
     gamma_val = math.log10(0.9) / math.log10(mean / 255)  # 公式计算gamma
-    # 默认0.5 建议0.2或者0.1，越大越亮
+    # 0到1，默认0.5 纸面处理建议0.9，越大越亮
     image_gamma_correct = gamma_core(cvimg, gamma_val)  # gamma变换
     # print(mean, np.mean(image_gamma_correct))
     return image_gamma_correct
@@ -301,7 +301,7 @@ def image_border(img_input, dst):
 
     # 判断边框
     diff = w - h
-    width = int(abs(diff/2))
+    width = int(abs(diff / 2))
     if diff >= 0:
         # 加top
         h += width
@@ -328,7 +328,7 @@ def image_border(img_input, dst):
         w += width
         img_new = Image.new('RGB', (w, h), color)
         img_new.paste(img_ori, (width, 0, w, h))
-        img_ori =img_new
+        img_ori = img_new
         # 加right
         w += width
         img_new = Image.new('RGB', (w, h), color)
@@ -374,7 +374,7 @@ def image_border(img_input, dst):
         pass
     '''
     # 保存图片
-    #img_new.save(dst)
+    # img_new.save(dst)
     # PIL转CV2
     img_ret = cv2.cvtColor(numpy.asarray(img_new), cv2.COLOR_RGB2BGR)
     return img_ret
@@ -432,5 +432,5 @@ def charactor_match_count_sex(result_list, charactor_need_match):
 
 
 def cv_imread_chs(filePath):
-    cv_img = cv2.imdecode(np.fromfile(filePath,dtype=np.uint8),-1)
+    cv_img = cv2.imdecode(np.fromfile(filePath, dtype=np.uint8), -1)
     return cv_img

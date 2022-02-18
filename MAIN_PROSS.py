@@ -56,7 +56,7 @@ def main_pross(cvimg):
         return '错误：OCR离线'
     elif len(pre_response.json()["results"]) == 0:
         print('OCRERR')
-        return '错误：OCR没有正常工作'
+        return f'错误：OCR没有正常工作,{pre_response.text}'
     # pprint(pre_response.json()["results"][0]["data"])
     report_overview = []
     for i in range(len(pre_response.json()["results"][0]["data"])):
@@ -162,7 +162,7 @@ def main_pross(cvimg):
         return '错误：OCR离线'
     elif len(usr_info_response.json()["results"]) == 0:
         print('OCRERR')
-        return '错误：OCR没有正常工作'
+        return f'错误：OCR没有正常工作,{usr_info_response.text}'
     # pprint(usr_info_response.json()["results"][0]["data"])
     usr_info_overview = []
     for i in range(len(usr_info_response.json()["results"][0]["data"])):
@@ -207,7 +207,7 @@ def main_pross(cvimg):
             return '错误：OCR离线'
         elif len(response.json()["results"]) == 0:
             print('OCRERR')
-            return '错误：OCR未正常工作'
+            return f'错误：OCR未正常工作,{response.text}'
 
         print(response.json()["results"][0]["data"])
         answer.append(response)
@@ -269,11 +269,11 @@ def main_pross(cvimg):
     bloodtest_single["unit"] = patient_age
     bloodtest_list.append(bloodtest_single)
     test_dict = {
-        'version': "1.0",
+        'version': "0.3",
         'bloodtest': bloodtest_list,
         'explain': {
             'used': True,
-            'details': "this is for josn test",
+            'details': "json生成测试",
         }
     }
     json_str = json.dumps(test_dict, ensure_ascii=False, indent=4)

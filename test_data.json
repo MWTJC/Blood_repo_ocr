@@ -1,191 +1,142 @@
 {
-    "version": "1.0",
+    "version": "0.3",
     "bloodtest": [
         {
-            "name": "白细胞计数（WBC）",
-            "value": "5.97",
-            "range": "3.5-9.5x109/L",
+            "name": "白细胞",
+            "value": "8.9",
+            "range": "3.5-9.5109/L",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "红细胞计数（RBC）",
-            "value": "4.92",
-            "range": "4.3-5.8x1012/L",
+            "name": "红细胞",
+            "value": "4.96",
+            "range": "4.3-5.81012/L",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "血红蛋白（HGB）",
-            "value": "148",
-            "range": "130-175g/L",
+            "name": "血红蛋白",
+            "value": "143",
+            "range": "130--175g/L",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "红细胞压积（HCT）",
-            "value": "42.9",
-            "range": "40-50%",
+            "name": "红细胞压积",
+            "value": "0.43",
+            "range": "0.4--0.5",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "平均红细胞血红蛋白量（MCH）",
-            "value": "30.1",
-            "range": "27.0-34.0pg",
+            "name": "红细胞平均体积",
+            "value": "87.5",
+            "range": "82--100fL",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "平均红细胞体积（MCV）",
-            "value": "87.2",
-            "range": "82.0-100.0f1",
+            "name": "平均血红蛋白量",
+            "value": "28.8",
+            "range": "27--34p8",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "平均红细胞血红蛋白浓度（MCHC）",
-            "value": "345",
-            "range": "316-354g/L",
+            "name": "平均血红蛋白浓度",
+            "value": "329",
+            "range": "316--354g/L",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "红细胞分布宽度（RDW-SD）",
-            "value": "37.34",
-            "range": "39.0-52.3f1",
+            "name": "血小板",
+            "value": "293",
+            "range": "125-350109/L",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "红细胞分布宽度--变异系数（RDW-CV）",
-            "value": "11.7",
-            "range": "10.0-15.0%",
+            "name": "红细胞分布宽度CV",
+            "value": "12.1",
+            "range": "11-—16%",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "血小板分布宽度（PDW）",
-            "value": "10.4",
-            "range": "9.0-18.1f1",
+            "name": "血小板分布宽度",
+            "value": "13.0",
+            "range": "9--17fL",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "平均血小板体积（MPV）",
-            "value": "9.21",
-            "range": "9.40-13.50f1",
+            "name": "平均血小板体积",
+            "value": "9.6",
+            "range": "6-12fL",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "大血小板比率（P-LCR）",
-            "value": "19.1",
-            "range": "19.1-47.0%",
+            "name": "淋巴细胞数",
+            "value": "2.7",
+            "range": "0.8-4109/L",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "中性粒细胞%（NEUT%）",
-            "value": "48.9",
-            "range": "40.0-75.0%",
+            "name": "淋巴细胞比率",
+            "value": "30.5",
+            "range": "20--50%",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "淋巴细胞%（LYMPH%）",
-            "value": "40.4",
-            "range": "20.0-50.0%",
+            "name": "中间细胞数",
+            "value": "0.5",
+            "range": "0.1--0.8109/L",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "单核细胞%（MON0%）",
-            "value": "7.9",
-            "range": "3.0-10.0%",
+            "name": "中间细胞比率",
+            "value": "6",
+            "range": "3-10%",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "嗜酸性粒细胞%（EO%）",
-            "value": "1.8",
-            "range": "0.4-8.0%",
+            "name": "中性细胞数",
+            "value": "5.7",
+            "range": "2--7.7109/L",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "嗜碱性粒细胞%（BASO%）",
-            "value": "1.0",
-            "range": "0.0-1.0%",
+            "name": "中性细胞比率",
+            "value": "63.5",
+            "range": "40--75%",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "中性粒细胞绝对值（NEUT#）",
-            "value": "2.92",
-            "range": "1.8-6.3x109/L",
+            "name": "大血小板比率",
+            "value": "23.7",
+            "range": "13-43%",
             "alias": "",
             "unit": ""
         },
         {
-            "name": "淋巴细胞绝对值（LYMPH#）",
-            "value": "2.41",
-            "range": "1.1-3.2x109/L",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "单核细胞绝对值（MONO#）",
-            "value": "0.47",
-            "range": "0.1-0.6x109/L",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "嗜酸性粒细胞绝对值（EO#",
-            "value": "0.11",
-            "range": "0.02-0.52x109/L",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "诸碱性粒细胞绝对值（BASO#）",
-            "value": "0.06",
-            "range": "0-0.06x109/L",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "血小板计数（PLT）",
-            "value": "263",
-            "range": "125-350×109/L",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "中性淋巴比值（NLR）",
-            "value": "1.2",
-            "range": "0.9-3.1",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "血小板淋巴比值（PLR",
-            "value": "109.1",
-            "range": "63.0-176.2",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "复旦大学附属华山医院+是血常规",
-            "value": "姓名：王玉涛",
+            "name": "北京航空航天大学医院+是血常规",
+            "value": "姓名：",
             "range": "性别：男",
             "alias": "空白信息2",
-            "unit": "年龄：26岁"
+            "unit": "年龄：30岁"
         }
     ],
     "explain": {
         "used": true,
-        "details": "this is for josn test"
+        "details": "json生成测试"
     }
 }

@@ -80,7 +80,7 @@ def upload():
             '''
 
             report_data = MAIN_PROSS.main_pross(img)
-            # 判断是否报错
+            # 判断是否报错，中文开头为错误
 
             err_or_not = PRE_pross.charactor_match_chinese_head(report_data)
             if err_or_not is True:
