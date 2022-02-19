@@ -1,4 +1,5 @@
 # coding=utf-8
+import os
 import math
 import re
 
@@ -385,7 +386,7 @@ def charactor_match_hospital_name(result_list, charactor_need_match):
     for i in range(len(result_list)):
         match_obj = re.match(regex_str, result_list[i])
         if match_obj:
-            print(match_obj.group(1))
+            print('命中:'+match_obj.group(1))
             break
     else:
         print(f'未能判断:{charactor_need_match}')
@@ -398,7 +399,7 @@ def charactor_match_count_name_age(result_list, charactor_need_match):
     for i in range(len(result_list)):
         match_obj = re.search(regex_str, result_list[i])
         if match_obj:
-            print(match_obj.group(1))
+            print('命中:'+match_obj.group(1))
             break
     else:
         print(f'未能判断:{charactor_need_match}')
@@ -423,7 +424,7 @@ def charactor_match_count_sex(result_list, charactor_need_match):
             match_obj_black = re.search('.*自费', result_list[i])
             if match_obj_black:
                 continue
-            print(match_obj.group(1))
+            print('命中:'+match_obj.group(1))
             break
     else:
         print(f'未能判断:{charactor_need_match}')
@@ -434,3 +435,9 @@ def charactor_match_count_sex(result_list, charactor_need_match):
 def cv_imread_chs(filePath):
     cv_img = cv2.imdecode(np.fromfile(filePath, dtype=np.uint8), -1)
     return cv_img
+
+
+def where_is_work_folder():
+    path = os.path.dirname(os.path.abspath(__file__))  # C:\\project\\dist\\WEB_MAIN'
+    root_path = path+'\\'
+    return root_path

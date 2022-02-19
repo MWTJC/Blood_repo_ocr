@@ -24,7 +24,7 @@ app = Flask(__name__, static_url_path="")
 app.secret_key = '123456'
 
 # 读取mongoDB配置文件
-app.config.from_object('config')
+app.config.from_pyfile('conf\\flask_config.cfg')
 
 # 连接数据库，并获取数据库对象
 db = MongoClient(app.config['DB_HOST'], app.config['DB_PORT']).test
@@ -79,7 +79,7 @@ def upload():
             # todo 是否需要本地存储中转
             '''
 
-            report_data = MAIN_PROSS.main_pross(img)
+            report_data = MAIN_PROSS.main_pross(img, demo_or_not=0)
             # 判断是否报错，中文开头为错误
 
             err_or_not = PRE_pross.charactor_match_chinese_head(report_data)
@@ -98,7 +98,7 @@ def upload():
                 return jsonify(data)
             '''
             # todo 开始更改
-            path_img_toDB = 'temp_pics/region.jpg'
+            path_img_toDB = 'temp\\region.jpg'
 
             with open(path_img_toDB, "rb") as f:
                 if f is None:
@@ -192,12 +192,21 @@ def update_report(fid, ss):
 '''
 
 if __name__ == '__main__':
-    # 检查并重置工作文件夹
-    shutil.rmtree('ocr_result')
-    shutil.rmtree('temp_pics')
-    shutil.rmtree('DEMO/mask')
-    os.mkdir('ocr_result')
-    os.mkdir('temp_pics')
-    os.mkdir('DEMO/mask')
+    def run():
+        root_path = PRE_pross.where_is_work_folder()
+        # 检查并重置工作文件夹
+        try:
+            shutil.rmtree('temp')
+            os.mkdir('temp\\ocr_result')
+            os.mkdir('temp\\DEMO')
+            os.mkdir('temp\\DEMO\\mask')
+        except:
+            os.mkdir('temp')
+            os.mkdir('temp\\DEMO')
+            os.mkdir('temp\\ocr_result')
+            os.mkdir('temp\\DEMO\\mask')
 
-    app.run(host=app.config['SERVER_HOST'], port=app.config['SERVER_PORT'])
+        app.run(host=app.config['SERVER_HOST'], port=app.config['SERVER_PORT'])
+
+
+    run()

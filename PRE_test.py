@@ -1,10 +1,16 @@
 # coding=utf-8
-from PIL import Image
-import cv2
-import numpy
-import PRE_pross
+import os
 
 
 if __name__ == "__main__":
-    img_org = cv2.imread('DEMO/mask/report_repo_num1.jpg')
-    PRE_pross.image_border(img_org, 'R.jpg')
+
+    path = os.path.dirname(os.path.abspath(__file__)) # 'C:\\Users\\user'
+    folder = os.path.basename(path)  # 'user'
+
+    root_dir1 = os.path.dirname(__file__)
+    root_dir2 = os.path.abspath(__file__)
+    root_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir4 = os.path.dirname(os.path.abspath('.'))
+    path = os.getcwd()  # 'C:\\Users\\user'
+
+    print('1')

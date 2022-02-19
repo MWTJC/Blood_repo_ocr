@@ -46,7 +46,7 @@ def net_OCR(cvimg):
     return r
 
 
-def main_pross(cvimg):
+def main_pross(cvimg, demo_or_not):
     img_org = cvimg
     img_gamma = PRE_pross.gamma(img_org)
 
@@ -100,11 +100,11 @@ def main_pross(cvimg):
         if PRE_pross.charactor_match_count_name_age(report_overview, blood_keys_list[w]):
             n = n + 1.00
     if n >= (float(len(blood_keys_read))) / 2:
-        print("是血常规")
+        print("-是血常规-")
         is_blood_test = "是血常规"
         path_suffix = '-血常规'
     else:
-        print('不是血常规')
+        print('-不是血常规-')
         is_blood_test = "不是血常规"
         return '错误：目前仅支持血常规，请勿上传其他类型报告'
 
@@ -112,7 +112,7 @@ def main_pross(cvimg):
     if os.path.exists(conf_path) is False:
         print('配置文件不存在')
         return '错误：目前暂不支持此医院的此种报告'
-    img_feature_path = f'Feature_IMG/{path_prefix}{path_suffix}.jpg'
+    img_feature_path = f'OCR_IMG\\Feature_IMG\\{path_prefix}{path_suffix}.jpg'
     if os.path.exists(img_feature_path) is False:
         print('特征图片不存在')
         return '错误：缺少特征图片，无法匹配，请等候开发者后续维护'
@@ -140,7 +140,7 @@ def main_pross(cvimg):
     # [旧]correct_points, knn_result = knn_match_old(img_template, img_small_1k, demo)
     correct_matrix, knn_result = PRE_pross.knn_match_new(template_img=img_template,
                                                          img_need_match=img_small_1k,
-                                                         demo=0)
+                                                         demo=demo_or_not)
     if knn_result == 2874734:
         return '错误：未能成功探测布局，建议重新拍摄'
     # 以下是新变换办法，直接用单应性矩阵变换后直接裁剪得到目标图像（能解决老办法不能自动旋转的问题）
@@ -154,7 +154,7 @@ def main_pross(cvimg):
     # plt.imshow(img_screen_cut, 'gray'), plt.show()
     img_screen_cut_1k, ratio_outdate = PRE_pross.zoom_to_1k(img_screen_cut)
 
-    cv2.imwrite('temp_pics/region.jpg', img_screen_cut_1k)  # 适配开源血常规
+    cv2.imwrite('temp/region.jpg', img_screen_cut_1k)  # 适配开源血常规
 
     # 将用户信息识别滞后，提升识别概率
     usr_info_response = net_OCR(img_screen_cut_1k)
@@ -191,9 +191,9 @@ def main_pross(cvimg):
     # 下面开始按照比例裁剪识别区域
     img_element = PRE_pross.mask_processing_new(img_input=img_screen_cut,
                                                 boxes_coordinate_xy=box_list,
-                                                demo_or_not=0,
+                                                demo_or_not=demo_or_not,
                                                 type_char='repo',
-                                                output_dir='DEMO/',
+                                                output_dir='temp\\DEMO\\',
                                                 out_name='report')  # 根据配置裁剪数据区
     # 拓宽防止ocr不识别的bug
     for i in range(len(img_element)):
@@ -209,7 +209,7 @@ def main_pross(cvimg):
             print('OCRERR')
             return f'错误：OCR未正常工作,{response.text}'
 
-        print(response.json()["results"][0]["data"])
+        # pprint(response.json()["results"][0]["data"])
         answer.append(response)
         answer[n] = answer[n].json()["results"]
 
@@ -284,14 +284,13 @@ def main_pross(cvimg):
 
 if __name__ == '__main__':
     # 清空临时文件
-    shutil.rmtree('ocr_result')
-    shutil.rmtree('temp_pics')
-    shutil.rmtree('DEMO/mask')
-    os.mkdir('ocr_result')
-    os.mkdir('temp_pics')
-    os.mkdir('DEMO/mask')
+    shutil.rmtree('temp')
+    os.mkdir('temp')
+    os.mkdir('temp\\DEMO')
+    os.mkdir('temp\\ocr_result')
+    os.mkdir('temp\\DEMO\\mask')
 
-    img_orig_path = 'Input_IMG/zs-blood-normal.jpg'
+    img_orig_path = 'OCR_IMG\\Input_IMG\\zs-blood-normal.jpg'
     img_input = PRE_pross.cv_imread_chs(img_orig_path)
 
-    main_pross(img_input)
+    main_pross(img_input,demo_or_not=1)
