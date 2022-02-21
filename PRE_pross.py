@@ -11,7 +11,8 @@ import configparser
 import matplotlib.pyplot as plt
 from PIL import Image
 
-import Color_print
+from colorama import init, Fore, Back
+init(autoreset=True)
 
 
 class configparser_custom(configparser.ConfigParser):  # 解决默认被转换为小写问题
@@ -97,7 +98,7 @@ def knn_match_new(template_img, img_need_match, demo):
     # 单应性
     if len(good) > MIN_MATCH_COUNT:
         result = 1
-        Color_print.printBlueT(f"匹配结果 - {len(good)}/{MIN_MATCH_COUNT}")
+        print(Fore.LIGHTBLUE_EX+f"匹配结果 - {len(good)}/{MIN_MATCH_COUNT}")
         # 改变数组的表现形式，不改变数据内容，数据内容是每个关键点的坐标位置
         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
@@ -106,7 +107,7 @@ def knn_match_new(template_img, img_need_match, demo):
         # 返回值：M 为变换矩阵，mask是掩模
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
         if M is None:
-            Color_print.printERRB('畸形匹配')
+            print(Back.RED+'畸形匹配')
             dst = 0
             result = 2874734
             return dst, result
@@ -125,7 +126,7 @@ def knn_match_new(template_img, img_need_match, demo):
             img_need_match = cv2.polylines(img_need_match, [np.int32(dst)], True, (0, 0, 255), 1, cv2.LINE_AA)
 
     else:
-        Color_print.printERRB(f"不甚匹配 - {len(good)}/{MIN_MATCH_COUNT}")
+        print(Fore.RED+f"不甚匹配 - {len(good)}/{MIN_MATCH_COUNT}")
         if demo == 1:
             plt.imshow(img_need_match, 'gray'), plt.show()
         dst = 0
@@ -388,10 +389,10 @@ def charactor_match_hospital_name(result_list, charactor_need_match):
     for i in range(len(result_list)):
         match_obj = re.match(regex_str, result_list[i])
         if match_obj:
-            Color_print.printGREENB('命中:'+match_obj.group(1))
+            print(Fore.GREEN+'命中:'+match_obj.group(1))
             break
     else:
-        Color_print.printWARNINGB(f'未命中:{charactor_need_match}')
+        print(Fore.YELLOW+f'未命中:{charactor_need_match}')
         return None
     return match_obj.group(1)
 
@@ -401,10 +402,10 @@ def charactor_match_count_name_age(result_list, charactor_need_match):
     for i in range(len(result_list)):
         match_obj = re.search(regex_str, result_list[i])
         if match_obj:
-            Color_print.printGREENB('命中:'+match_obj.group(1))
+            print(Fore.GREEN+'命中:'+match_obj.group(1))
             break
     else:
-        Color_print.printWARNINGB(f'未命中:{charactor_need_match}')
+        print(Fore.YELLOW+f'未命中:{charactor_need_match}')
         return None
     return match_obj.group(1)
 
@@ -426,10 +427,10 @@ def charactor_match_count_sex(result_list, charactor_need_match):
             match_obj_black = re.search('.*自费', result_list[i])
             if match_obj_black:
                 continue
-            Color_print.printGREENB('命中:'+match_obj.group(1))
+            print(Fore.GREEN+'命中:'+match_obj.group(1))
             break
     else:
-        Color_print.printWARNINGB(f'未命中:{charactor_need_match}')
+        print(Fore.YELLOW+f'未命中:{charactor_need_match}')
         return None
     return match_obj.group(1)
 

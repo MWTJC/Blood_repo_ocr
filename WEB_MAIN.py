@@ -8,6 +8,8 @@ import flask
 import numpy
 
 from PIL import Image
+from colorama import init, Fore, Back
+init(autoreset=True)
 from bson.json_util import dumps
 from flask import Flask, request, Response, jsonify, redirect, json, flash, abort
 from numpy import rint
@@ -19,7 +21,7 @@ import os
 
 import PRE_pross
 import MAIN_PROSS
-import Color_print
+
 
 app = Flask(__name__, static_url_path="")
 app.secret_key = '123456'
@@ -83,6 +85,7 @@ def upload():
 
             err_or_not = PRE_pross.charactor_match_chinese_head(report_data)
             if err_or_not is True:
+                print(Back.RED+report_data)
                 data = {
                     'error': report_data,
                 }
@@ -105,7 +108,7 @@ def upload():
                     try:
                         fid, filename = save_file(file_str, f, report_data)
                     except:
-                        Color_print.printERRB('DB离线')
+                        print(Back.RED+'DB离线')
                         data = {
                             'error': '错误：MongoDB离线',
                         }

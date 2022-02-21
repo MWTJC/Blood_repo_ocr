@@ -7,4 +7,5 @@ scipy
 shapely
 pyclipper
 pymongo==3.9
+pyinstaller
 *bson

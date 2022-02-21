@@ -9,7 +9,8 @@ import cv2
 import base64
 import matplotlib.pyplot as plt
 
-import Color_print
+from colorama import init, Fore, Back
+init(autoreset=True)
 
 plt.switch_backend('agg')
 import shutil
@@ -58,7 +59,7 @@ def main_pross(cvimg, demo_or_not):
     if pre_response is 'OCROFFLINE':
         return '错误：OCR离线'
     elif len(pre_response.json()["results"]) == 0:
-        print('OCRERR')
+        # print('OCRERR')
         return f'错误：OCR没有正常工作,{pre_response.text}'
     # pprint(pre_response.json()["results"][0]["data"])
     report_overview = []
@@ -88,7 +89,7 @@ def main_pross(cvimg, demo_or_not):
         patient_name = '年龄：'
     '''
     if hospital is None:
-        print('未能识别医院信息')
+        # print('未能识别医院信息')
         return '错误：未能识别所属医院，请拍摄完整的报告单图片'
 
     # 读取报告类型关键词
@@ -113,11 +114,11 @@ def main_pross(cvimg, demo_or_not):
 
     conf_path = f'conf/{path_prefix}{path_suffix}.conf'
     if os.path.exists(conf_path) is False:
-        print('配置文件不存在')
+        # print('配置文件不存在')
         return '错误：目前暂不支持此医院的此种报告'
-    img_feature_path = f'OCR_IMG\\Feature_IMG\\{path_prefix}{path_suffix}.jpg'
+    img_feature_path = f'OCR_IMG/Feature_IMG/{path_prefix}{path_suffix}.jpg'
     if os.path.exists(img_feature_path) is False:
-        print('特征图片不存在')
+        # print('特征图片不存在')
         return '错误：缺少特征图片，无法匹配，请等候开发者后续维护'
     # 读取配置
     # conf_path = 'conf/bj-aerospace-blood-normal.conf'
@@ -164,8 +165,8 @@ def main_pross(cvimg, demo_or_not):
     if usr_info_response is 'OCROFFLINE':
         return '错误：OCR离线'
     elif len(usr_info_response.json()["results"]) == 0:
-        print('OCRERR')
-        return f'错误：OCR没有正常工作,{usr_info_response.text}'
+        # print('OCRERR')
+        return f'错误：OCR没有正常工作,\n{usr_info_response.text}'
     # pprint(usr_info_response.json()["results"][0]["data"])
     usr_info_overview = []
     for i in range(len(usr_info_response.json()["results"][0]["data"])):
@@ -208,7 +209,7 @@ def main_pross(cvimg, demo_or_not):
         if response is 'OCROFFLINE':
             return '错误：OCR离线'
         elif len(response.json()["results"]) == 0:
-            print('OCRERR')
+            # print('OCRERR')
             return f'错误：OCR未正常工作,{response.text}'
 
         # pprint(response.json()["results"][0]["data"])
@@ -222,12 +223,12 @@ def main_pross(cvimg, demo_or_not):
 
     if count[0] == count[1] and count[1] == count[2]:
         if count[3] == count[4] and count[4] == count[5]:
-            Color_print.printBlueT('无缺损')
+            print(Fore.LIGHTBLUE_EX+'无缺损')
         else:
-            Color_print.printERRB('右边识别不完全')
+            print(Back.RED+'右边识别不完全')
             return '错误：识别异常，数据量不匹配，建议重新拍摄'
     else:
-        Color_print.printERRB('左边识别不完全')
+        print(Back.RED+'左边识别不完全')
         return '错误：识别异常，数据量不匹配，建议重新拍摄'
 
     # print(answer[1][0]['data'][1]['text'])
@@ -249,7 +250,7 @@ def main_pross(cvimg, demo_or_not):
         pass
         # print('err')
     if len(name_out) == 0:
-        Color_print.printERRB('无数据')
+        print(Back.RED+'无数据')
         return '错误：没有识别到有效数据'
     # 以下开始json化
     bloodtest_list = []
