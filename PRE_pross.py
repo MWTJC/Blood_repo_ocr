@@ -11,6 +11,8 @@ import configparser
 import matplotlib.pyplot as plt
 from PIL import Image
 
+import Color_print
+
 
 class configparser_custom(configparser.ConfigParser):  # 解决默认被转换为小写问题
     def __init__(self, defaults=None):
@@ -95,7 +97,7 @@ def knn_match_new(template_img, img_need_match, demo):
     # 单应性
     if len(good) > MIN_MATCH_COUNT:
         result = 1
-        print("匹配结果 - %d/%d" % (len(good), MIN_MATCH_COUNT))
+        Color_print.printBlueT(f"匹配结果 - {len(good)}/{MIN_MATCH_COUNT}")
         # 改变数组的表现形式，不改变数据内容，数据内容是每个关键点的坐标位置
         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
@@ -104,7 +106,7 @@ def knn_match_new(template_img, img_need_match, demo):
         # 返回值：M 为变换矩阵，mask是掩模
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
         if M is None:
-            print('畸形匹配')
+            Color_print.printERRB('畸形匹配')
             dst = 0
             result = 2874734
             return dst, result
@@ -123,7 +125,7 @@ def knn_match_new(template_img, img_need_match, demo):
             img_need_match = cv2.polylines(img_need_match, [np.int32(dst)], True, (0, 0, 255), 1, cv2.LINE_AA)
 
     else:
-        print("不甚匹配 - %d/%d" % (len(good), MIN_MATCH_COUNT))
+        Color_print.printERRB(f"不甚匹配 - {len(good)}/{MIN_MATCH_COUNT}")
         if demo == 1:
             plt.imshow(img_need_match, 'gray'), plt.show()
         dst = 0
@@ -137,7 +139,7 @@ def knn_match_new(template_img, img_need_match, demo):
                            matchesMask=matchesMask,  # 仅绘制有效匹配
                            flags=2)
         img3 = cv2.drawMatches(template_img, kp1, img_need_match, kp2, good, None, **draw_params)
-        cv2.imwrite('DEMO/knn.jpg', img3)
+        cv2.imwrite('temp/DEMO/knn.jpg', img3)
 
     # print('匹配完毕...')
     return np.linalg.inv(M), result
@@ -261,7 +263,7 @@ def crop_xls_zoom_new(boxes_coordinate_xy, scaling_ratio):  # 坐标读取并缩
     return y0a, y1a, x0a, x1a
 
 
-def mask_processing_new(img_input, boxes_coordinate_xy, demo_or_not, type_char, output_dir, out_name):
+def mask_processing_new(img_input, boxes_coordinate_xy, demo_or_not, type_char, out_name):
     if demo_or_not == 1:
         print('剪裁读入：', img_input.shape[:2])
     image_1k, ratio = zoom_to_1k(img_input)  # xls坐标以1k为标准，将坐标缩放，适配图片，此处确定缩放比例
@@ -272,7 +274,7 @@ def mask_processing_new(img_input, boxes_coordinate_xy, demo_or_not, type_char, 
         dst.append(img_input[int(y0a[k]):int(y1a[k]), int(x0a[k]):int(x1a[k])])  # 裁剪
 
         if demo_or_not == 1:
-            n = output_dir + f'mask/' + out_name + f'_{type_char}_num{k:01}.jpg'
+            n = f'temp/DEMO/mask/' + out_name + f'_{type_char}_num{k:01}.jpg'
             cv2.imwrite(n, dst[k])  # 二级输出
     return dst
 
@@ -386,10 +388,10 @@ def charactor_match_hospital_name(result_list, charactor_need_match):
     for i in range(len(result_list)):
         match_obj = re.match(regex_str, result_list[i])
         if match_obj:
-            print('命中:'+match_obj.group(1))
+            Color_print.printGREENB('命中:'+match_obj.group(1))
             break
     else:
-        print(f'未能判断:{charactor_need_match}')
+        Color_print.printWARNINGB(f'未命中:{charactor_need_match}')
         return None
     return match_obj.group(1)
 
@@ -399,10 +401,10 @@ def charactor_match_count_name_age(result_list, charactor_need_match):
     for i in range(len(result_list)):
         match_obj = re.search(regex_str, result_list[i])
         if match_obj:
-            print('命中:'+match_obj.group(1))
+            Color_print.printGREENB('命中:'+match_obj.group(1))
             break
     else:
-        print(f'未能判断:{charactor_need_match}')
+        Color_print.printWARNINGB(f'未命中:{charactor_need_match}')
         return None
     return match_obj.group(1)
 
@@ -424,10 +426,10 @@ def charactor_match_count_sex(result_list, charactor_need_match):
             match_obj_black = re.search('.*自费', result_list[i])
             if match_obj_black:
                 continue
-            print('命中:'+match_obj.group(1))
+            Color_print.printGREENB('命中:'+match_obj.group(1))
             break
     else:
-        print(f'未能判断:{charactor_need_match}')
+        Color_print.printWARNINGB(f'未命中:{charactor_need_match}')
         return None
     return match_obj.group(1)
 
@@ -436,8 +438,9 @@ def cv_imread_chs(filePath):
     cv_img = cv2.imdecode(np.fromfile(filePath, dtype=np.uint8), -1)
     return cv_img
 
-
+'''
 def where_is_work_folder():
     path = os.path.dirname(os.path.abspath(__file__))  # C:\\project\\dist\\WEB_MAIN'
     root_path = path+'\\'
     return root_path
+'''

@@ -8,6 +8,9 @@ import json
 import cv2
 import base64
 import matplotlib.pyplot as plt
+
+import Color_print
+
 plt.switch_backend('agg')
 import shutil
 import os
@@ -193,7 +196,6 @@ def main_pross(cvimg, demo_or_not):
                                                 boxes_coordinate_xy=box_list,
                                                 demo_or_not=demo_or_not,
                                                 type_char='repo',
-                                                output_dir='temp\\DEMO\\',
                                                 out_name='report')  # 根据配置裁剪数据区
     # 拓宽防止ocr不识别的bug
     for i in range(len(img_element)):
@@ -220,12 +222,12 @@ def main_pross(cvimg, demo_or_not):
 
     if count[0] == count[1] and count[1] == count[2]:
         if count[3] == count[4] and count[4] == count[5]:
-            print('无缺损')
+            Color_print.printBlueT('无缺损')
         else:
-            print('右边识别不完全')
+            Color_print.printERRB('右边识别不完全')
             return '错误：识别异常，数据量不匹配，建议重新拍摄'
     else:
-        print('左边识别不完全')
+        Color_print.printERRB('左边识别不完全')
         return '错误：识别异常，数据量不匹配，建议重新拍摄'
 
     # print(answer[1][0]['data'][1]['text'])
@@ -247,7 +249,7 @@ def main_pross(cvimg, demo_or_not):
         pass
         # print('err')
     if len(name_out) == 0:
-        print('无数据')
+        Color_print.printERRB('无数据')
         return '错误：没有识别到有效数据'
     # 以下开始json化
     bloodtest_list = []
@@ -286,11 +288,11 @@ if __name__ == '__main__':
     # 清空临时文件
     shutil.rmtree('temp')
     os.mkdir('temp')
-    os.mkdir('temp\\DEMO')
-    os.mkdir('temp\\ocr_result')
-    os.mkdir('temp\\DEMO\\mask')
+    os.mkdir('temp/DEMO')
+    os.mkdir('temp/ocr_result')
+    os.mkdir('temp/DEMO/mask')
 
-    img_orig_path = 'OCR_IMG\\Input_IMG\\zs-blood-normal.jpg'
+    img_orig_path = 'OCR_IMG/Input_IMG/zs-blood-normal.jpg'
     img_input = PRE_pross.cv_imread_chs(img_orig_path)
 
-    main_pross(img_input,demo_or_not=1)
+    main_pross(img_input, demo_or_not=1)

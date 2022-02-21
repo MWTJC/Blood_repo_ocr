@@ -19,12 +19,13 @@ import os
 
 import PRE_pross
 import MAIN_PROSS
+import Color_print
 
 app = Flask(__name__, static_url_path="")
 app.secret_key = '123456'
 
 # 读取mongoDB配置文件
-app.config.from_pyfile('conf\\flask_config.cfg')
+app.config.from_pyfile('conf/flask_config.cfg')
 
 # 连接数据库，并获取数据库对象
 db = MongoClient(app.config['DB_HOST'], app.config['DB_PORT']).test
@@ -44,11 +45,9 @@ def save_file(file_str, f, report_data):
         abort(400)
     c = dict(report_data=report_data, content=file_str, filename=secure_filename(f.name),
              mime=mime)
-    try:
-        db.files.save(c)
-    except:
-        print('DB_ERR')
-        abort(400)
+
+    db.files.save(c)
+
     return c['_id'], c['filename']
 
 
@@ -79,7 +78,7 @@ def upload():
             # todo 是否需要本地存储中转
             '''
 
-            report_data = MAIN_PROSS.main_pross(img, demo_or_not=0)
+            report_data = MAIN_PROSS.main_pross(img, demo_or_not=demo_or_not)
             # 判断是否报错，中文开头为错误
 
             err_or_not = PRE_pross.charactor_match_chinese_head(report_data)
@@ -89,16 +88,9 @@ def upload():
                 }
                 flash(report_data)
                 return jsonify(data)
-            '''
-            if report_data is 'OCR_ERR':
-                data = {
-                    'error': 'OCR故障',
-                }
-                flash('OCR故障')
-                return jsonify(data)
-            '''
+
             # todo 开始更改
-            path_img_toDB = 'temp\\region.jpg'
+            path_img_toDB = 'temp/region.jpg'
 
             with open(path_img_toDB, "rb") as f:
                 if f is None:
@@ -110,7 +102,15 @@ def upload():
                     '''
                     file_str = f.read()
                     # file_str = MAIN_PROSS.cv2_to_base64(cv2.imread(path_img_toDB))
-                    fid, filename = save_file(file_str, f, report_data)
+                    try:
+                        fid, filename = save_file(file_str, f, report_data)
+                    except:
+                        Color_print.printERRB('DB离线')
+                        data = {
+                            'error': '错误：MongoDB离线',
+                        }
+                        flash(report_data)
+                        return jsonify(data)
             print('fid:', fid)
             if fid is not None:
                 templates = "<div><img id=\'filtered-report\' src=\'/file/%s\' class=\'file-preview-image\' width=\'100%%\' height=\'512\'></div>" % (
@@ -193,20 +193,19 @@ def update_report(fid, ss):
 
 if __name__ == '__main__':
     def run():
-        root_path = PRE_pross.where_is_work_folder()
         # 检查并重置工作文件夹
         try:
             shutil.rmtree('temp')
-            os.mkdir('temp\\ocr_result')
-            os.mkdir('temp\\DEMO')
-            os.mkdir('temp\\DEMO\\mask')
+            os.mkdir('temp/ocr_result')
+            os.mkdir('temp/DEMO')
+            os.mkdir('temp/DEMO/mask')
         except:
             os.mkdir('temp')
-            os.mkdir('temp\\DEMO')
-            os.mkdir('temp\\ocr_result')
-            os.mkdir('temp\\DEMO\\mask')
+            os.mkdir('temp/DEMO')
+            os.mkdir('temp/ocr_result')
+            os.mkdir('temp/DEMO/mask')
 
         app.run(host=app.config['SERVER_HOST'], port=app.config['SERVER_PORT'])
 
-
+    demo_or_not = 0
     run()
