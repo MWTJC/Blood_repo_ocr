@@ -2,6 +2,7 @@
 
 # from PIL import Image
 from pprint import pprint
+from glob import glob
 import re
 import requests
 import json
@@ -55,6 +56,8 @@ def main_pross(cvimg, demo_or_not):
     img_gamma = PRE_pross.gamma(img_org)
 
     # 判断所属医院以及检验项目
+    img_gamma = PRE_pross.image_border(img_input=img_gamma,
+                                       dst='0')
     pre_response = net_OCR(img_gamma)
     if pre_response is 'OCROFFLINE':
         return '错误：OCR离线'
@@ -90,14 +93,73 @@ def main_pross(cvimg, demo_or_not):
     '''
     if hospital is None:
         # print('未能识别医院信息')
-        return '错误：未能识别所属医院，请拍摄完整的报告单图片'
+        return '错误：未能识别所属医院，请拍摄完整的报告单图片，并保证纸面平整'
 
     # 读取报告类型关键词
-    blood_normal_keywords_conf_path = 'conf/[关键词]血常规.conf'
-    blood_keys = configparser_custom()
-    blood_keys.read(blood_normal_keywords_conf_path, 'UTF-8')
-    blood_keys_read = blood_keys.items("keywords")
-    blood_keys_list = []
+    '''
+    def read_keywords(type):
+        keywords_conf_path = f'conf/[关键词]{type}.conf'
+        keys = configparser_custom()
+        keys.read(keywords_conf_path, 'UTF-8')
+        keys_read = keys.items("keywords")
+        # keys_list = []
+        return keys_read
+    '''
+    def read_keywords(path):
+        #keywords_conf_path = f'conf/[关键词]{type}.conf'
+        keys = configparser_custom()
+        keys.read(path, 'UTF-8')
+        keys_read = keys.items("keywords")
+        # keys_list = []
+        return keys_read
+
+    '''
+    def type_judge(keys_need_judge, keys_read, text):
+        n = 0.00
+        keys_list = []
+        for w in range(len(keys_read)):
+            keys_list.append(keys_read[w][1])
+            if PRE_pross.charactor_match_count_name_age(keys_need_judge, keys_list[w]):
+                n = n + 1.00
+        if n >= (float(len(keys_read))) / 2:
+            print(f"-是{text}-")
+            path_suffix = f'-{text}'
+            return path_suffix
+        else:
+            print(f'-不是{text}-')
+            #return '错误：目前不支持此种报告，请勿上传其他类型报告'
+            return False
+    '''
+    def type_judge(lstKwds_need_judge, conf_path):
+        path = f"{conf_path}/[*.conf"
+        lstTxtFiles = glob(path)
+        for strTxtFile in lstTxtFiles:
+            keys_list = read_keywords(strTxtFile)
+            keys_list_t = []
+            for w in range(len(keys_list)):
+                keys_list_t.append(keys_list[w][1])
+            # strContent = txtWrapper.read()  # 读关键词
+            i = 0.00
+            n = 0.00
+            for strKwd in keys_list_t:  # 用每个从本地读取到的关键词去匹配
+                n = len(keys_list_t)
+                if PRE_pross.charactor_match_any(lstKwds_need_judge, strKwd):
+                    # if strKwd in strContent:  # 如果命中
+                    i = i + 1
+            print(i / n)
+            if (i / n) > 0.4:
+                # print(os.path.basename(strTxtFile))
+                find = os.path.basename(strTxtFile)
+                find_no_ex = find.split('.conf')
+                find_type = find_no_ex[0].split(']')
+                type = find_type[1]
+                return type
+
+    report_type = type_judge(lstKwds_need_judge=report_overview,
+                             conf_path='conf')
+    path_suffix = f'-{report_type}'
+
+    '''
     n = 0.00
     for w in range(len(blood_keys_read)):
         blood_keys_list.append(blood_keys_read[w][1])
@@ -111,7 +173,7 @@ def main_pross(cvimg, demo_or_not):
         print('-不是血常规-')
         is_blood_test = "不是血常规"
         return '错误：目前仅支持血常规，请勿上传其他类型报告'
-
+    '''
     conf_path = f'conf/{path_prefix}{path_suffix}.conf'
     if os.path.exists(conf_path) is False:
         # print('配置文件不存在')
@@ -265,7 +327,7 @@ def main_pross(cvimg, demo_or_not):
 
     # 加入附加信息
     bloodtest_single = OrderedDict()
-    bloodtest_single["name"] = f'{hospital}+{is_blood_test}'
+    bloodtest_single["name"] = f'{hospital}{path_suffix}'
     bloodtest_single["value"] = patient_name
     bloodtest_single["range"] = patient_sex
     bloodtest_single["alias"] = '空白信息2'

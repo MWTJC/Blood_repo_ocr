@@ -410,6 +410,19 @@ def charactor_match_count_name_age(result_list, charactor_need_match):
     return match_obj.group(1)
 
 
+def charactor_match_any(result_list, charactor_need_match):
+    regex_str = f".*{charactor_need_match}.*"
+    for i in range(len(result_list)):
+        match_obj = re.search(regex_str, result_list[i])
+        if match_obj:
+            print(Fore.GREEN+'命中:'+charactor_need_match+'->'+match_obj.string)
+            return match_obj.string
+    else:
+        print(Fore.YELLOW+f'未命中:{charactor_need_match}')
+        return None
+    # return match_obj.group(1)
+
+
 def charactor_match_chinese_head(result_list):
     regex_str = '^[\u4E00-\u9FA5].*'
     match_obj = re.match(regex_str, result_list)
