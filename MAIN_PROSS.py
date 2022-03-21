@@ -153,6 +153,7 @@ def main_pross(cvimg, demo_or_not):
                 find_no_ex = find.split('.conf')
                 find_type = find_no_ex[0].split(']')
                 type = find_type[1]
+                print(Back.GREEN+type)
                 return type
 
     report_type = type_judge(lstKwds_need_judge=report_overview,
@@ -182,12 +183,14 @@ def main_pross(cvimg, demo_or_not):
     if os.path.exists(img_feature_path) is False:
         # print('特征图片不存在')
         return '错误：缺少特征图片，无法匹配，请等候开发者后续维护'
+
     # 读取配置
     # conf_path = 'conf/bj-aerospace-blood-normal.conf'
     conf = configparser_custom()
     conf.read(conf_path, 'UTF-8')
     boxes_conf = conf.items("boxes")
     name_list = []
+    # box_list[] 格式:[左，右，上，下]
     box_list = []
     for w in range(len(boxes_conf)):
         name_list.append(boxes_conf[w][0])
@@ -279,6 +282,8 @@ def main_pross(cvimg, demo_or_not):
         answer[n] = answer[n].json()["results"]
 
     # 判断是否识别完全
+    # 以下为老代码，暂时废弃
+    '''
     count = []
     for n in range(len(img_element)):
         count.append(len(answer[n][0]['data']))
@@ -292,35 +297,126 @@ def main_pross(cvimg, demo_or_not):
     else:
         print(Back.RED+'左边识别不完全')
         return '错误：识别异常，数据量不匹配，建议重新拍摄'
-
+    '''
     # print(answer[1][0]['data'][1]['text'])
     # 以下开始处理识别回传数据
+    # 格式说明： ?_position[],先长后高，左上开始顺时针4点
     name_out = []
+    name_out_position = []
     value_out = []
+    value_out_position = []
     range_out = []
+    range_out_position = []
+    name_out2 = []
+    name_out_position2 = []
+    value_out2 = []
+    value_out_position2 = []
+    range_out2 = []
+    range_out_position2 = []
     for i in range(len(answer)):
-        if i == 0 or i == 3:
+        if i == 0:
             for j in range(len(answer[i][0]['data'])):
                 name_out.append(answer[i][0]['data'][j]['text'])
-        if i == 1 or i == 4:
+                name_out_position.append(answer[i][0]['data'][j]['text_box_position'])
+        if i == 1:
             for j in range(len(answer[i][0]['data'])):
                 value_out.append(answer[i][0]['data'][j]['text'])
-        if i == 2 or i == 5:
+                value_out_position.append(answer[i][0]['data'][j]['text_box_position'])
+        if i == 2:
             for j in range(len(answer[i][0]['data'])):
                 range_out.append(answer[i][0]['data'][j]['text'])
+                range_out_position.append(answer[i][0]['data'][j]['text_box_position'])
+        if i == 3:
+            for j in range(len(answer[i][0]['data'])):
+                name_out2.append(answer[i][0]['data'][j]['text'])
+                name_out_position2.append(answer[i][0]['data'][j]['text_box_position'])
+        if i == 4:
+            for j in range(len(answer[i][0]['data'])):
+                value_out2.append(answer[i][0]['data'][j]['text'])
+                value_out_position2.append(answer[i][0]['data'][j]['text_box_position'])
+        if i == 5:
+            for j in range(len(answer[i][0]['data'])):
+                range_out2.append(answer[i][0]['data'][j]['text'])
+                range_out_position2.append(answer[i][0]['data'][j]['text_box_position'])
     else:
         pass
         # print('err')
+
     if len(name_out) == 0:
         print(Back.RED+'无数据')
         return '错误：没有识别到有效数据'
-    # 以下开始json化
+
+    # 开始根据坐标对齐
+    def data_align(list_name, list_name_position, list_value, list_value_position, list_range, list_range_position):
+        list_out = []
+        for i in range(len(list_name)):
+            list_out_child = []
+            height_up = 0.5*(float(list_name_position[i][0][1])+float(list_name_position[i][1][1]))
+            height_down = 0.5 * (float(list_name_position[i][2][1]) + float(list_name_position[i][3][1]))
+            height_should = 0.5*(height_up+height_down)
+
+            list_out_child.append(list_name[i])
+
+            for j in range(len(list_value)):
+                height_up2 = 0.5 * (float(list_value_position[j][0][1]) + float(list_value_position[j][1][1]))
+                height_down2 = 0.5 * (float(list_value_position[j][2][1]) + float(list_value_position[j][3][1]))
+                height_should2 = 0.5 * (height_up2 + height_down2)
+
+                if abs(height_should-height_should2) <= 5.0:
+                    list_out_child.append(list_value[j])
+                    break
+                else:
+                    pass
+            if len(list_out_child) == 1:
+                list_out_child.append('空')
+
+            for k in range(len(list_range)):
+                height_up3 = 0.5 * (float(list_range_position[k][0][1]) + float(list_range_position[k][1][1]))
+                height_down3 = 0.5 * (float(list_range_position[k][2][1]) + float(list_range_position[k][3][1]))
+                height_should3 = 0.5 * (height_up3 + height_down3)
+                if abs(height_should-height_should3) <= 5.0:
+                    list_out_child.append(list_range[k])
+                    break
+                else:
+                    pass
+            if len(list_out_child) == 2:
+                list_out_child.append('空')
+            list_out.append(list_out_child)
+        return list_out
+
+    list_new = data_align(name_out, name_out_position, value_out, value_out_position, range_out, range_out_position)
+    list_new2 = data_align(name_out2, name_out_position2, value_out2, value_out_position2, range_out2, range_out_position2)
+    list_new.extend(list_new2)
+
+    # 旧 数据复原等待处理
+    '''
+    name_out.extend(name_out2)
+    name_out_position.extend(name_out_position2)
+    value_out.extend(value_out2)
+    value_out_position.extend(value_out_position2)
+    range_out.extend(range_out2)
+    range_out_position.extend(range_out_position2)
+    '''
+
+    # 旧 以下开始json化
+    '''
     bloodtest_list = []
     for i in range(len(name_out)):
         bloodtest_single = OrderedDict()
         bloodtest_single["name"] = name_out[i]
         bloodtest_single["value"] = value_out[i]
         bloodtest_single["range"] = range_out[i]
+        bloodtest_single["alias"] = ''
+        bloodtest_single["unit"] = ''
+        bloodtest_list.append(bloodtest_single)
+    '''
+    # 新 JSON化
+    bloodtest_list = []
+    for i in range(len(list_new)):
+        bloodtest_single = OrderedDict()
+        bloodtest_single["name"] = list_new[i][0]
+        bloodtest_single["value"] = list_new[i][1]
+        bloodtest_single["range"] = list_new[i][2]
         bloodtest_single["alias"] = ''
         bloodtest_single["unit"] = ''
         bloodtest_list.append(bloodtest_single)
