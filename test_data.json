@@ -4,40 +4,40 @@
         {
             "name": "PIMAX",
             "unit": "[kPa]",
-            "range": "11.34",
-            "value": "2.50",
-            "ratio": "22.0"
+            "range": "11.15",
+            "value": "2.65",
+            "ratio": "23.8"
         },
         {
             "name": "PEMAX",
             "unit": "[kPa]",
-            "range": "9.40",
-            "value": "2.41",
-            "ratio": "25.6"
+            "range": "14.81",
+            "value": "1.99",
+            "ratio": "13.4"
         },
         {
             "name": "PO.1MAX",
             "unit": "[kPa]",
-            "range": "7.94",
+            "range": "7.81",
             "value": "¿Õ",
             "ratio": "¿Õ"
         },
         {
-            "name": "P0.1",
+            "name": "PO.1",
             "unit": "[kPa]",
-            "range": "0.19",
-            "value": "0.65",
-            "ratio": "339.6"
+            "range": "0.17",
+            "value": "0.44",
+            "ratio": "256.1"
         },
         {
             "name": "PO.1/PIMAX",
             "unit": "¿Õ",
             "range": "0.02",
-            "value": "0.26",
-            "ratio": "1572"
+            "value": "0.17",
+            "ratio": "1100"
         },
         {
-            "name": "PO.1/PO.1MAX",
+            "name": "PO.1/P0.1MAX",
             "unit": "¿Õ",
             "range": "0.02",
             "value": "¿Õ",
@@ -45,73 +45,73 @@
         },
         {
             "name": "BF",
-            "unit": "¡¾1/min]",
+            "unit": "[1/min]",
             "range": "20.00",
-            "value": "30.94",
-            "ratio": "154.7"
+            "value": "37.58",
+            "ratio": "187.9"
         },
         {
             "name": "MV",
-            "unit": "[L/min]",
-            "range": "9.57",
-            "value": "33.96",
-            "ratio": "354.8"
+            "unit": "¡¾L/min]",
+            "range": "8.57",
+            "value": "46.26",
+            "ratio": "539.7"
         },
         {
             "name": "RV-SB",
-            "unit": "[L]",
-            "range": "1.00",
-            "value": "1.72",
-            "ratio": "172.6"
+            "unit": "[]",
+            "range": "1.51",
+            "value": "2.75",
+            "ratio": "181.8"
         },
         {
             "name": "RVSTLC-SB",
-            "unit": "[8]",
-            "range": "23.84",
-            "value": "42.37",
-            "ratio": "177.7"
+            "unit": "[81",
+            "range": "25.08",
+            "value": "49.36",
+            "ratio": "196.8"
         },
         {
-            "name": "TIC-SB",
-            "unit": "[L]",
-            "range": "4.30",
-            "value": "4.06",
-            "ratio": "94.3"
+            "name": "TLC-SB",
+            "unit": "[T]",
+            "range": "5.89",
+            "value": "5.57",
+            "ratio": "94.6"
         },
         {
             "name": "DLCO¡üSB",
             "unit": "¿Õ",
-            "range": "7.80",
-            "value": "9.26",
-            "ratio": "118.7"
+            "range": "9.50",
+            "value": "11.01",
+            "ratio": "115.9"
         },
         {
             "name": "DLCO/VA",
             "unit": "¿Õ",
-            "range": "1.88",
-            "value": "2.37",
-            "ratio": "126.3"
+            "range": "1.70",
+            "value": "2.02",
+            "ratio": "118.8"
         },
         {
-            "name": "TA",
+            "name": "¹¤",
             "unit": "¿Õ",
             "range": "¿Õ",
-            "value": "9.47",
+            "value": "9.74",
             "ratio": "¿Õ"
         },
         {
             "name": "FRC-SB",
             "unit": "¿Õ",
-            "range": "1.85",
-            "value": "2.29",
-            "ratio": "123.5"
+            "range": "3.05",
+            "value": "4.12",
+            "ratio": "135.0"
         },
         {
-            "name": "FRCSTLC-SB",
+            "name": "FRCTLC-SB",
             "unit": "¿Õ",
-            "range": "55.18",
-            "value": "56.35",
-            "ratio": "102.1"
+            "range": "47.04",
+            "value": "73.98",
+            "ratio": "157.3"
         },
         {
             "name": "¸´µ©´óÑ§¸½Êô»ªÉ½Ò½Ôº-·Î¹¦ÄÜ",

@@ -12,6 +12,7 @@ import base64
 import matplotlib.pyplot as plt
 
 from colorama import init, Fore, Back
+
 init(autoreset=True)
 
 plt.switch_backend('agg')
@@ -62,6 +63,139 @@ def net_OCR(cvimg):
     return r
 
 
+def data_align_new(input_body_list, list_title):
+    '''
+    此处导入识别主体list和每一列的数据名称
+    :return: list
+    '''
+    # todo 如何改进定义严格程度使更精准（单位像素）
+    judge = 13
+    # 初始化输出列表
+    list_out = []
+    dict_out = []
+
+    # 确定每行共有多少列
+    number_of_columns = len(input_body_list)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
+
+    # number_of_columns = int(len(input_list)/2)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
+
+    def get_h_location_func(child_list_input):
+        list_name_h_location_output = []
+        for i in range(len(child_list_input)):  # 遍历第一次识别的所有结果
+
+            h_u = 0.5 * (float(child_list_input[i]['text_box_position'][0][1]) +
+                         float(child_list_input[i]['text_box_position'][1][1]))
+            h_d = 0.5 * (float(child_list_input[i]['text_box_position'][2][1]) +
+                         float(child_list_input[i]['text_box_position'][3][1]))
+            h_location = 0.5 * (h_u + h_d)  # 确定每一项的高度位置
+            list_name_h_location_output.append(h_location)
+        return list_name_h_location_output
+
+    list_name_h_location = get_h_location_func(input_body_list[0][0]['data'])
+
+    # 解决一行名字被识别为两项的情况（名字中间有过长空格）
+
+    list_invalid_name = []  # 记录无效项
+    for i in range(len(list_name_h_location)):
+        if i in list_invalid_name:
+            pass
+        else:
+            for j in range(len(list_name_h_location)):
+                if j <= i:
+                    pass
+                else:
+                    if abs(list_name_h_location[i] - list_name_h_location[j]) < judge:
+                        list_invalid_name.append(j)
+
+    list_name_correct = []
+    list_name_position_correct = []
+    for i in range(len(input_body_list[0][0]['data'])):
+        if i in list_invalid_name:
+            for n in range(4):  # 往前推，合并到最近的正常项
+                if i - 1 - n in list_invalid_name:
+                    pass
+                else:
+                    list_name_correct[-1] = list_name_correct[-1] + ' ' + (
+                        input_body_list[0][0]['data'][i]['text'])  # 向前合并
+                    break
+            pass
+        else:
+            list_name_correct.append(input_body_list[0][0]['data'][i]['text'])  # 第一次组合，先填入行名字(检测项目名)
+            list_name_position_correct.append(list_name_h_location[i])
+    for i in range(len(list_name_correct)):  # 以下开始组合每一条数据
+        list_out_child = []
+
+        dict_out_child = dict()
+
+        list_out_child.append(list_name_correct[i])  # 确定第一项：名字
+
+        dict_out_child[list_title[0]] = list_name_correct[i]
+
+        for k in range(1, number_of_columns):
+
+            if len(input_body_list[k][0]['data']) == 0:
+                list_out_child.append('空')
+
+                dict_out_child[list_title[k]] = '空'
+
+                pass
+            else:
+                list_diy_h_location = get_h_location_func(input_body_list[k][0]['data'])  # 确定其他项的高度
+                for l in range(len(list_diy_h_location)):
+                    if abs(list_name_position_correct[i] - list_diy_h_location[l]) < judge:  # todo 如何判断高度最近
+                        list_out_child.append(input_body_list[k][0]['data'][l]['text'])
+
+                        dict_out_child[list_title[k]] = input_body_list[k][0]['data'][l]['text']
+
+                        break
+                    else:
+                        pass
+                if len(list_out_child) == k:
+                    list_out_child.append('空')
+
+                    dict_out_child[list_title[k]] = '空'
+
+        list_out.append(list_out_child)
+
+        dict_out.append(dict_out_child)
+
+    return list_out, dict_out
+
+
+def read_keywords(path):
+    keys = configparser_custom()
+    keys.read(path, 'UTF-8')
+    keys_read = keys.items("keywords")
+    return keys_read
+
+
+def type_judge(lstKwds_need_judge, conf_path):
+    path = f"{conf_path}/[*.conf"
+    lstTxtFiles = glob(path)
+    for strTxtFile in lstTxtFiles:
+        keys_list = read_keywords(strTxtFile)
+        keys_list_t = []
+        for w in range(len(keys_list)):
+            keys_list_t.append(keys_list[w][1])
+        # strContent = txtWrapper.read()  # 读关键词
+        i = 0.00
+        n = 0.00
+        for strKwd in keys_list_t:  # 用每个从本地读取到的关键词去匹配
+            n = len(keys_list_t)
+            if PRE_pross.charactor_match_any(lstKwds_need_judge, strKwd):
+                # if strKwd in strContent:  # 如果命中
+                i = i + 1
+        print(i / n)
+        if (i / n) > 0.4:
+            # print(os.path.basename(strTxtFile))
+            find = os.path.basename(strTxtFile)
+            find_no_ex = find.split('.conf')
+            find_type = find_no_ex[0].split(']')
+            type = find_type[1]
+            print(Back.GREEN + type)
+            return type
+
+
 def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     img_org = cvimg
     img_gamma = PRE_pross.gamma(img_org)
@@ -93,63 +227,6 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
         return '错误：未能识别所属医院，请拍摄完整的报告单图片，并保证纸面平整'
 
     # 读取报告类型关键词
-    '''
-    def read_keywords(type):
-        keywords_conf_path = f'conf/[关键词]{type}.conf'
-        keys = configparser_custom()
-        keys.read(keywords_conf_path, 'UTF-8')
-        keys_read = keys.items("keywords")
-        # keys_list = []
-        return keys_read
-    '''
-    def read_keywords(path):
-        keys = configparser_custom()
-        keys.read(path, 'UTF-8')
-        keys_read = keys.items("keywords")
-        return keys_read
-
-    '''
-    def type_judge(keys_need_judge, keys_read, text):
-        n = 0.00
-        keys_list = []
-        for w in range(len(keys_read)):
-            keys_list.append(keys_read[w][1])
-            if PRE_pross.charactor_match_count_name_age(keys_need_judge, keys_list[w]):
-                n = n + 1.00
-        if n >= (float(len(keys_read))) / 2:
-            print(f"-是{text}-")
-            path_suffix = f'-{text}'
-            return path_suffix
-        else:
-            print(f'-不是{text}-')
-            #return '错误：目前不支持此种报告，请勿上传其他类型报告'
-            return False
-    '''
-    def type_judge(lstKwds_need_judge, conf_path):
-        path = f"{conf_path}/[*.conf"
-        lstTxtFiles = glob(path)
-        for strTxtFile in lstTxtFiles:
-            keys_list = read_keywords(strTxtFile)
-            keys_list_t = []
-            for w in range(len(keys_list)):
-                keys_list_t.append(keys_list[w][1])
-            # strContent = txtWrapper.read()  # 读关键词
-            i = 0.00
-            n = 0.00
-            for strKwd in keys_list_t:  # 用每个从本地读取到的关键词去匹配
-                n = len(keys_list_t)
-                if PRE_pross.charactor_match_any(lstKwds_need_judge, strKwd):
-                    # if strKwd in strContent:  # 如果命中
-                    i = i + 1
-            print(i / n)
-            if (i / n) > 0.4:
-                # print(os.path.basename(strTxtFile))
-                find = os.path.basename(strTxtFile)
-                find_no_ex = find.split('.conf')
-                find_type = find_no_ex[0].split(']')
-                type = find_type[1]
-                print(Back.GREEN+type)
-                return type
     if report_type_lock is False:
         report_type = type_judge(lstKwds_need_judge=report_overview,
                                  conf_path='conf')
@@ -278,227 +355,12 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
         answer[n] = answer[n].json()["results"]
 
     # 判断是否识别完全
-    # 以下为老代码，暂时废弃
-    '''
-    count = []
-    for n in range(len(img_element)):
-        count.append(len(answer[n][0]['data']))
 
-    if count[0] == count[1] and count[1] == count[2]:
-        if count[3] == count[4] and count[4] == count[5]:
-            print(Fore.LIGHTBLUE_EX+'无缺损')
-        else:
-            print(Back.RED+'右边识别不完全')
-            return '错误：识别异常，数据量不匹配，建议重新拍摄'
-    else:
-        print(Back.RED+'左边识别不完全')
-        return '错误：识别异常，数据量不匹配，建议重新拍摄'
-    '''
     # print(answer[1][0]['data'][1]['text'])
     # 以下开始处理识别回传数据
     # 格式说明： ?_position[],先长后高，左上开始顺时针4点
-    '''
-    name_out = []
-    name_out_position = []
-    value_out = []
-    value_out_position = []
-    range_out = []
-    range_out_position = []
-    name_out2 = []
-    name_out_position2 = []
-    value_out2 = []
-    value_out_position2 = []
-    range_out2 = []
-    range_out_position2 = []
-    unit_out = []
-    unit_out_position = []
-    unit_out2 = []
-    unit_out_position2 = []
-    for i in range(len(answer)):
-        if i == 0:
-            for j in range(len(answer[i][0]['data'])):
-                name_out.append(answer[i][0]['data'][j]['text'])
-                name_out_position.append(answer[i][0]['data'][j]['text_box_position'])
-        if i == 1:
-            for j in range(len(answer[i][0]['data'])):
-                value_out.append(answer[i][0]['data'][j]['text'])
-                value_out_position.append(answer[i][0]['data'][j]['text_box_position'])
-        if i == 2:
-            for j in range(len(answer[i][0]['data'])):
-                range_out.append(answer[i][0]['data'][j]['text'])
-                range_out_position.append(answer[i][0]['data'][j]['text_box_position'])
-        if i == 3:
-            for j in range(len(answer[i][0]['data'])):
-                name_out2.append(answer[i][0]['data'][j]['text'])
-                name_out_position2.append(answer[i][0]['data'][j]['text_box_position'])
-        if i == 4:
-            for j in range(len(answer[i][0]['data'])):
-                value_out2.append(answer[i][0]['data'][j]['text'])
-                value_out_position2.append(answer[i][0]['data'][j]['text_box_position'])
-        if i == 5:
-            for j in range(len(answer[i][0]['data'])):
-                range_out2.append(answer[i][0]['data'][j]['text'])
-                range_out_position2.append(answer[i][0]['data'][j]['text_box_position'])
-    else:
-        pass
-        # print('err')
 
-    if len(name_out) == 0:
-        print(Back.RED+'无数据')
-        return '错误：没有识别到有效数据'
-    '''
     # 开始根据坐标对齐
-    def data_align_new(input_body_list, list_title):
-        '''
-        此处导入识别主体list和每一列的数据名称
-        :return: list
-        '''
-        # todo 如何改进定义严格程度使更精准（单位像素）
-        judge = 10
-        # 初始化输出列表
-        list_out = []
-        dict_out = []
-
-
-
-        # 确定每行共有多少列
-        number_of_columns = len(input_body_list)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
-        # number_of_columns = int(len(input_list)/2)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
-
-        def get_h_location_func(child_list_input):
-            list_name_h_location_output = []
-            for i in range(len(child_list_input)):  # 遍历第一次识别的所有结果
-
-                h_u = 0.5 * (float(child_list_input[i]['text_box_position'][0][1]) +
-                             float(child_list_input[i]['text_box_position'][1][1]))
-                h_d = 0.5 * (float(child_list_input[i]['text_box_position'][2][1]) +
-                             float(child_list_input[i]['text_box_position'][3][1]))
-                h_location = 0.5 * (h_u + h_d)  # 确定每一项的高度位置
-                list_name_h_location_output.append(h_location)
-            return list_name_h_location_output
-
-        list_name_h_location = get_h_location_func(input_body_list[0][0]['data'])
-
-        # 解决一行名字被识别为两项的情况（名字中间有过长空格）
-
-        list_invalid_name = []  # 记录无效项
-        for i in range(len(list_name_h_location)):
-            if i in list_invalid_name:
-                pass
-            else:
-                for j in range(len(list_name_h_location)):
-                    if j <= i:
-                        pass
-                    else:
-                        if abs(list_name_h_location[i]-list_name_h_location[j]) < judge:
-                            list_invalid_name.append(j)
-
-        list_name_correct = []
-        list_name_position_correct = []
-        for i in range(len(input_body_list[0][0]['data'])):
-            if i in list_invalid_name:
-                for n in range(4):  # 往前推，合并到最近的正常项
-                    if i-1-n in list_invalid_name:
-                        pass
-                    else:
-                        list_name_correct[-1] = list_name_correct[-1]+' '+(input_body_list[0][0]['data'][i]['text'])  # 向前合并
-                        break
-                pass
-            else:
-                list_name_correct.append(input_body_list[0][0]['data'][i]['text'])  # 第一次组合，先填入行名字(检测项目名)
-                list_name_position_correct.append(list_name_h_location[i])
-        for i in range(len(list_name_correct)):  # 以下开始组合每一条数据
-            list_out_child = []
-
-            dict_out_child = dict()
-
-            list_out_child.append(list_name_correct[i])  # 确定第一项：名字
-
-            dict_out_child[list_title[0]] = list_name_correct[i]
-
-            for k in range(1, number_of_columns):
-
-                if len(input_body_list[k][0]['data']) == 0:
-                    list_out_child.append('空')
-
-                    dict_out_child[list_title[k]] = '空'
-
-                    pass
-                else:
-                    list_diy_h_location = get_h_location_func(input_body_list[k][0]['data'])  # 确定其他项的高度
-                    for l in range(len(list_diy_h_location)):
-                        if abs(list_name_position_correct[i] - list_diy_h_location[l]) < judge:  # todo 如何判断高度最近
-                            list_out_child.append(input_body_list[k][0]['data'][l]['text'])
-
-                            dict_out_child[list_title[k]] = input_body_list[k][0]['data'][l]['text']
-
-                            break
-                        else:
-                            pass
-                    if len(list_out_child) == k:
-                        list_out_child.append('空')
-
-                        dict_out_child[list_title[k]] = '空'
-
-            list_out.append(list_out_child)
-
-            dict_out.append(dict_out_child)
-
-
-        return list_out, dict_out
-
-
-    def data_align(list_name, list_name_position, list_value, list_value_position, list_range, list_range_position):
-        # 定义严格程度（单位像素）
-        judge = 10.0
-        # 初始化输出列表
-        list_out = []
-        for i in range(len(list_name)):
-            list_out_child = []
-            height_up = 0.5*(float(list_name_position[i][0][1])+float(list_name_position[i][1][1]))
-            height_down = 0.5 * (float(list_name_position[i][2][1]) + float(list_name_position[i][3][1]))
-            height_should = 0.5*(height_up+height_down)
-
-            list_out_child.append(list_name[i])
-
-            #for j in range(len(list_value)):
-            for j in range(len(list_value) - 1, -1, -1):
-            # while j < len(list_value):
-                height_up2 = 0.5 * (float(list_value_position[j][0][1]) + float(list_value_position[j][1][1]))
-                height_down2 = 0.5 * (float(list_value_position[j][2][1]) + float(list_value_position[j][3][1]))
-                height_should2 = 0.5 * (height_up2 + height_down2)
-
-                if abs(height_should-height_should2) <= judge:
-                    list_out_child.append(list_value[j])
-                    list_value.pop(j)
-                    break
-                else:
-                    pass
-            if len(list_out_child) == 1:
-                list_out_child.append('空')
-
-            # for k in range(len(list_range)):
-            for k in range(len(list_range) - 1, -1, -1):
-            # while k < len(list_range):
-                height_up3 = 0.5 * (float(list_range_position[k][0][1]) + float(list_range_position[k][1][1]))
-                height_down3 = 0.5 * (float(list_range_position[k][2][1]) + float(list_range_position[k][3][1]))
-                height_should3 = 0.5 * (height_up3 + height_down3)
-                if abs(height_should-height_should3) <= judge:
-                    list_out_child.append(list_range[k])
-                    list_range.pop(k)
-                    break
-                else:
-                    pass
-            if len(list_out_child) == 2:
-                list_out_child.append('空')
-            list_out.append(list_out_child)
-        return list_out
-
-    '''
-    list_new = data_align(name_out, name_out_position, value_out, value_out_position, range_out, range_out_position)
-    list_new2 = data_align(name_out2, name_out_position2, value_out2, value_out_position2, range_out2, range_out_position2)
-    list_new.extend(list_new2)
-    '''
 
     if int(len(answer)) % 2 == 1:
         print('需要对齐的列表有问题')
@@ -508,7 +370,7 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     list_title1 = []
     list_title2 = []
     for i in range(len(answer)):
-        if i < int(len(answer)/2):
+        if i < int(len(answer) / 2):
             answer1.append(answer[i])
             list_title1.append(list_title[i])
         else:
@@ -519,43 +381,6 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     list_direct.extend(list_direct2)
     dict_direct.extend(dict_direct2)
 
-    # 旧 数据复原等待处理
-    '''
-    name_out.extend(name_out2)
-    name_out_position.extend(name_out_position2)
-    value_out.extend(value_out2)
-    value_out_position.extend(value_out_position2)
-    range_out.extend(range_out2)
-    range_out_position.extend(range_out_position2)
-    '''
-
-    # 旧 以下开始json化
-    '''
-    bloodtest_list = []
-    for i in range(len(name_out)):
-        bloodtest_single = OrderedDict()
-        bloodtest_single["name"] = name_out[i]
-        bloodtest_single["value"] = value_out[i]
-        bloodtest_single["range"] = range_out[i]
-        bloodtest_single["alias"] = ''
-        bloodtest_single["unit"] = ''
-        bloodtest_list.append(bloodtest_single)
-    '''
-    # 新 JSON化
-    '''
-    bloodtest_list = []
-    for i in range(len(dict_direct)):
-        bloodtest_single = OrderedDict()
-        bloodtest_single["name1"] = dict_direct[i]['name1']
-        bloodtest_single["value1"] = dict_direct[i]['value1']
-        bloodtest_single["value2"] = dict_direct[i]['value2']
-        bloodtest_single["range"] = dict_direct[i]['range']
-        bloodtest_single["alias"] = ''
-        bloodtest_single["ratio1"] = dict_direct[i]['ratio1']
-        bloodtest_single["ratio2"] = dict_direct[i]['ratio2']
-        bloodtest_single["unit"] = dict_direct[i]['unit']
-        bloodtest_list.append(bloodtest_single)
-    '''
     bloodtest_list = []
     for i in range(len(dict_direct)):
         bloodtest_single = OrderedDict()
