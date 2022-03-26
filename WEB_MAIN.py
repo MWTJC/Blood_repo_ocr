@@ -63,12 +63,12 @@ def upload():
     time_start = time.time()
     if request.method == 'POST':
         if 'imagefile' not in request.files:
-            flash('No file part')
-            return jsonify({"error": "No file part"})
+            flash('图片格式不支持')
+            return jsonify({"error": "图片格式不支持"})
         imgfile = request.files['imagefile']
         if imgfile.filename == '':
-            flash('No selected file')
-            return jsonify({"error": "No selected file"})
+            flash('未选择图片')
+            return jsonify({"error": "未选择图片"})
         if imgfile:
             # pil = StringIO(imgfile)
             # pil = Image.open(pil)
@@ -80,7 +80,9 @@ def upload():
             # todo 是否需要本地存储中转
             '''
 
-            report_data = MAIN_PROSS.main_pross(img, demo_or_not=demo_or_not)
+            report_data = MAIN_PROSS.main_pross(cvimg=img,
+                                                demo_or_not=demo_or_not,
+                                                hospital_lock=False)
             # 判断是否报错，中文开头为错误
 
             err_or_not = PRE_pross.charactor_match_chinese_head(report_data)
@@ -94,6 +96,9 @@ def upload():
 
             # todo 开始更改
             path_img_toDB = 'temp/region.jpg'
+            img = cv2.imread(path_img_toDB)
+            w = img.shape[1]
+            h = img.shape[0]
 
             with open(path_img_toDB, "rb") as f:
                 if f is None:
@@ -116,13 +121,15 @@ def upload():
                         return jsonify(data)
             print('fid:', fid)
             if fid is not None:
-                templates = "<div><img id=\'filtered-report\' src=\'/file/%s\' class=\'file-preview-image\' width=\'100%%\' height=\'512\'></div>" % (
+                # 假设锁定网页显示高度为512：h=512, 所以w=512*(w/h)
+                display_height = 512
+                templates = f"<div align='center'><img id=\'filtered-report\' src=\'/file/%s\' class=\'file-preview-image\' width=\'{int(display_height*(w/h))}\' height=\'{display_height}\'></div>" % (
                     fid)
                 data = {
                     "templates": templates,
                 }
             time_end = time.time()
-            print('totally cost', time_end - time_start)
+            print('本次用时', time_end - time_start)
             return jsonify(data)
 
             # return render_template("result.html", filename=filename, fileid=fid)

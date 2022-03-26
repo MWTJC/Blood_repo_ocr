@@ -2,186 +2,173 @@
     "version": "0.3",
     "bloodtest": [
         {
-            "name": "SReff",
+            "name": "白细胞",
+            "value": "8.9",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "3.5-9.5109/L",
+            "unit2": ""
+        },
+        {
+            "name": "红细胞",
+            "value": "4.96",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "4.3--5.81012/L",
+            "unit2": ""
+        },
+        {
+            "name": "血红蛋白",
             "value": "空",
-            "range": "[kPa*s]",
+            "value2": "",
+            "range": "",
             "alias": "",
-            "unit": ""
+            "unit": "130--175g/L",
+            "unit2": ""
         },
         {
-            "name": "Reff",
+            "name": "红细胞压积",
+            "value": "0.43",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "0.4--0.5",
+            "unit2": ""
+        },
+        {
+            "name": "红细胞平均体积",
+            "value": "87.5",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "82--100fL",
+            "unit2": ""
+        },
+        {
+            "name": "平均血红蛋白量",
+            "value": "28.8",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "空",
+            "unit2": ""
+        },
+        {
+            "name": "平均血红蛋白浓度",
+            "value": "329",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "316--354g/L",
+            "unit2": ""
+        },
+        {
+            "name": "血小板",
+            "value": "293",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "125-350109/L",
+            "unit2": ""
+        },
+        {
+            "name": "红细胞分布宽度CV",
+            "value": "12.1",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "11--16%",
+            "unit2": ""
+        },
+        {
+            "name": "血小板分布宽度",
             "value": "空",
-            "range": "[kPa*s/L]",
+            "value2": "",
+            "range": "",
             "alias": "",
-            "unit": ""
+            "unit": "9--17fL",
+            "unit2": ""
         },
         {
-            "name": "REX",
+            "name": "平均血小板体积",
+            "value": "9.6",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "6-12LL",
+            "unit2": ""
+        },
+        {
+            "name": "淋巴细胞数",
+            "value": "2.7",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "0.8-4109/L",
+            "unit2": ""
+        },
+        {
+            "name": "淋巴细胞比率",
+            "value": "30.5",
+            "value2": "",
+            "range": "",
+            "alias": "",
+            "unit": "20--50%",
+            "unit2": ""
+        },
+        {
+            "name": "中间细胞数",
             "value": "空",
-            "range": "[kPa*s/L]",
+            "value2": "",
+            "range": "",
             "alias": "",
-            "unit": ""
+            "unit": "空",
+            "unit2": ""
         },
         {
-            "name": "VT",
-            "value": "空",
-            "range": "[L]",
+            "name": "中间细胞比率",
+            "value": "6",
+            "value2": "",
+            "range": "",
             "alias": "",
-            "unit": ""
+            "unit": "3-—10%",
+            "unit2": ""
         },
         {
-            "name": "FRCpleth",
-            "value": "空",
-            "range": "空",
+            "name": "中性细胞数",
+            "value": "5.7",
+            "value2": "",
+            "range": "",
             "alias": "",
-            "unit": ""
+            "unit": "2--7.7109/L",
+            "unit2": ""
         },
         {
-            "name": "ERV",
-            "value": "空",
-            "range": "空",
+            "name": "中性细胞比率",
+            "value": "63.5",
+            "value2": "",
+            "range": "",
             "alias": "",
-            "unit": ""
+            "unit": "40--75%",
+            "unit2": ""
         },
         {
-            "name": "RV",
-            "value": "空",
-            "range": "空",
+            "name": "大血小板比率",
+            "value": "23.7",
+            "value2": "",
+            "range": "",
             "alias": "",
-            "unit": ""
+            "unit": "13-43%",
+            "unit2": ""
         },
         {
-            "name": "TLC",
-            "value": "空",
-            "range": "空",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "RVS↑TLC",
-            "value": "空",
-            "range": "空",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "VC",
-            "value": "空",
-            "range": "空",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "MV",
-            "value": "空",
-            "range": "[L/min]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "FVC",
-            "value": "空",
-            "range": "[]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "FEV1",
-            "value": "空",
-            "range": "[工]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "FEV2",
-            "value": "空",
-            "range": "空",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "FEV3",
-            "value": "空",
-            "range": "空",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "FEV18FVC",
-            "value": "空",
-            "range": "[8]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "FEV↑18VC↑MAX",
-            "value": "空",
-            "range": "[8]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "PEE",
-            "value": "空",
-            "range": "[L/s]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "MEE75",
-            "value": "空",
-            "range": "[L/s]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "MEE50",
-            "value": "空",
-            "range": "[L/s]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "MEF25",
-            "value": "空",
-            "range": "[L/s]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "MMEE75/25",
-            "value": "5.82",
-            "range": "[L/s]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "EEE↑75/85",
-            "value": "2.21",
-            "range": "[L/s]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "FEV1*30",
-            "value": "123.66",
-            "range": "[L/min]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "Power↑ofbreathing",
-            "value": "空",
-            "range": "IWatt]",
-            "alias": "",
-            "unit": ""
-        },
-        {
-            "name": "复旦大学附属华山医院-肺通气功能",
-            "value": "年龄：",
-            "range": "性别：",
+            "name": "北京航空航天大学医院-血常规",
+            "value": "姓名：",
+            "range": "性别：男",
             "alias": "空白信息2",
-            "unit": null
+            "unit": "年龄：30岁"
         }
     ],
     "explain": {

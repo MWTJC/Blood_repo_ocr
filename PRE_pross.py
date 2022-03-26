@@ -294,10 +294,12 @@ def image_border(img_input, dst):
     width: (int) 边框宽度 (默认是3)
     color: (int or 3-tuple) 边框颜色 (默认是0, 表示黑色; 也可以设置为三元组表示RGB颜色)
     '''
+    # 拓宽倍率（按照最长边计算）
+    muti = 1.10
     # cv2转PIL
     img_ori = Image.fromarray(cv2.cvtColor(img_input, cv2.COLOR_BGR2RGB))
 
-    color = (255, 255, 255)
+    color = (255, 255, 255)  # 定义白色底板
     # 读取图片
     # img_ori = Image.open(src)
     w = img_ori.size[0]
@@ -305,49 +307,55 @@ def image_border(img_input, dst):
 
     # 判断边框
     diff = w - h
-    width = int(abs(diff / 2))
-    if diff >= 0:
+    # width = int(abs(diff / 2))
+    if diff >= 0:  # 如果宽大于高
+        square_blank_width = int(float(w)*muti)
+        add_h = int((square_blank_width-h)*0.5)
+        add_w = int((square_blank_width - w) * 0.5)
         # 加top
-        h += width
+        h += add_h
         img_new = Image.new('RGB', (w, h), color)
-        img_new.paste(img_ori, (0, width, w, h))
+        img_new.paste(img_ori, (0, add_h, w, h))
         img_ori = img_new
         # 加botton
-        h += width
+        h += add_h
         img_new = Image.new('RGB', (w, h), color)
-        img_new.paste(img_ori, (0, 0, w, h - width))
+        img_new.paste(img_ori, (0, 0, w, h - add_h))
         # 再加一点
         img_ori = img_new
         # 加left
-        w += 20
+        w += add_w
         img_new = Image.new('RGB', (w, h), color)
-        img_new.paste(img_ori, (20, 0, w, h))
+        img_new.paste(img_ori, (add_w, 0, w, h))
         img_ori = img_new
         # 加right
-        w += 20
+        w += add_w
         img_new = Image.new('RGB', (w, h), color)
-        img_new.paste(img_ori, (0, 0, w - 20, h))
+        img_new.paste(img_ori, (0, 0, w - add_w, h))
     elif diff < 0:
+        square_blank_width = int(float(h) * muti)
+        add_h = int((square_blank_width - h) * 0.5)
+        add_w = int((square_blank_width - w) * 0.5)
         # 加left
-        w += width
+        w += add_w
         img_new = Image.new('RGB', (w, h), color)
-        img_new.paste(img_ori, (width, 0, w, h))
+        img_new.paste(img_ori, (add_w, 0, w, h))
         img_ori = img_new
         # 加right
-        w += width
+        w += add_w
         img_new = Image.new('RGB', (w, h), color)
-        img_new.paste(img_ori, (0, 0, w - width, h))
+        img_new.paste(img_ori, (0, 0, w - add_w, h))
         # 再加一点
         img_ori = img_new
         # 加top
-        h += 20
+        h += add_h
         img_new = Image.new('RGB', (w, h), color)
-        img_new.paste(img_ori, (0, 20, w, h))
+        img_new.paste(img_ori, (0, add_h, w, h))
         img_ori = img_new
         # 加botton
-        h += 20
+        h += add_h
         img_new = Image.new('RGB', (w, h), color)
-        img_new.paste(img_ori, (0, 0, w, h - 20))
+        img_new.paste(img_ori, (0, 0, w, h - add_h))
     else:
         pass
 

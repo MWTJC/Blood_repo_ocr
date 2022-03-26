@@ -57,59 +57,36 @@
 <div id="report" class="container">
     <button type="button" v-on:click="showReport()" class="btn btn-primary btn-lg btn-block">生成报告</button>
     <div id="report-table" style="display:none;">
-        <div style="width:50%;float:left;">
+        <div style="width:100%;float:left;">
             <table id= "table_left" class="table table-inverse table-hover table-bordered">
                 <thead>
                 <tr>
-                    <th> </th>
+                    <th>序号</th>
                     <th>检测项目</th>
-                    <th>结果</th>
+                    <th>结果1</th>
+                    <th>结果2</th>
                     <th>参考范围</th>
+                    <th>比值1</th>
+                    <th>比值2</th>
                     <th>单位</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr v-for="item in report_items_left">
                     <td>{{ item.count }}</td>
-                    <td>
-                        <input type="text" v-model="item.name" class="form-control" placeholder="检测名称" />
-                    </td>
-                    <td>
-                        <input type="text" v-model="item.value" class="form-control" placeholder="检测值" />
-                    </td>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.value }}</td>
+                    <td>{{ item.value2 }}</td>
                     <td>{{ item.range }}</td>
+                    <td>{{ item.ratio }}</td>
+                    <td>{{ item.ratio2 }}</td>
                     <td>{{ item.unit }}</td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <div style="width:50%;float:right;">
-            <table id= "table_right" class="table table-inverse table-hover table-bordered">
-                <thead>
-                <tr>
-                    <th> </th>
-                    <th>检测项目</th>
-                    <th>结果</th>
-                    <th>参考范围</th>
-                    <th>单位</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr v-for="item in report_items_right">
-                    <td>{{ item.count }}</td>
-                    <td>
-                        <input type="text" v-model="item.name" class="form-control" placeholder="检测名称" />
-                    </td>
-                    <td>
-                        <input type="text" v-model="item.value" class="form-control" placeholder="检测值" />
-                    </td>
-                    <td>{{ item.range }}</td>
-                    <td>{{ item.unit }}</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+
     </div>
     <br>
     <br>
@@ -128,8 +105,8 @@
         browseLabel: "浏览",
         removeLabel: "删除",
         uploadLabel: "上传",
-        dropZoneTitle: "选择你血常规检验报告单上传或拖拽到此...",
-        allowedFileExtensions: ['jpg', 'gif', 'png'],
+        dropZoneTitle: "通过浏览选择检验报告单上传或拖拽到此...",
+        allowedFileExtensions: ['jpg', 'gif', 'png', 'jpeg'],
         fileActionSettings: {showUpload: false, showRemove: true}
     });
     $("#report-upload").on('fileuploaded', function(event, data){
@@ -217,30 +194,22 @@
 
                         //先清空表格内容
                         $("#table_left  tr:not(:first)").empty();
-                        $("#table_right  tr:not(:first)").empty();
+                        //$("#table_right  tr:not(:first)").empty();
 
-                        for (var i = 0; i < json_data["bloodtest"].length; i++) {
-                            if(i<18){
+                        for (var i = 0; i < json_data["bloodtest"].length; i++)
+                                {
                                 report.report_items_left.push({
                                     count: i+1,
                                     name: json_data.bloodtest[i]["name"],
                                     alias: json_data.bloodtest[i].alias,
                                     value: json_data.bloodtest[i].value,
+                                    value2: json_data.bloodtest[i].value2,
                                     range: json_data.bloodtest[i].range,
+                                    ratio: json_data.bloodtest[i].ratio,
+                                    ratio2: json_data.bloodtest[i].ratio2,
                                     unit: json_data.bloodtest[i].unit
                                 });
-                            }
 
-                            else {
-                                report.report_items_right.push({
-                                    count: i+1,
-                                    name: json_data.bloodtest[i]["name"],
-                                    alias: json_data.bloodtest[i].alias,
-                                    value: json_data.bloodtest[i].value,
-                                    range: json_data.bloodtest[i].range,
-                                    unit: json_data.bloodtest[i].unit
-                                });
-                            }
 
                         }
 

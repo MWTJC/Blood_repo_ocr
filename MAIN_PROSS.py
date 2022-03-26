@@ -28,6 +28,16 @@ class configparser_custom(configparser.ConfigParser):  # 解决默认被转换�
     def optionxform(self, optionstr):
         return optionstr
 
+    def as_dict(self):
+        """
+        将configparser.ConfigParser().read()读到的数据转换成dict返回
+        :return:
+        """
+        d = dict(self._sections)
+        for k in d:
+            d[k] = dict(d[k])
+        return d
+
 
 def cv2_to_base64(image):
     data = cv2.imencode('.jpg', image)[1]
@@ -51,7 +61,7 @@ def net_OCR(cvimg):
     return r
 
 
-def main_pross(cvimg, demo_or_not):
+def main_pross(cvimg, demo_or_not, hospital_lock):
     img_org = cvimg
     img_gamma = PRE_pross.gamma(img_org)
 
@@ -70,27 +80,13 @@ def main_pross(cvimg, demo_or_not):
         report_overview.append(pre_response.json()["results"][0]["data"][i]['text'])
 
     # 取出医院关键词
-    hospital = PRE_pross.charactor_match_hospital_name(report_overview, '医院')
+    if hospital_lock == False:
+        hospital = PRE_pross.charactor_match_hospital_name(report_overview, '医院')
+    if hospital_lock == True:
+        hospital = '复旦大学附属华山医院'
     path_prefix = hospital
     # ocr会把间隔大的文字分开识别，大概率优先识别为中文字符
-    '''
-    patient_name = PRE_pross.charactor_match_count_name_age(report_overview, '名：')
-    if patient_name:
-        # 以防万一把所有冒号前的东西重新统一
-        patient_name = re.sub(r'.*：', '姓名：', patient_name)
-    else:
-        patient_name = '姓名：'
-    patient_sex = PRE_pross.charactor_match_count_sex(report_overview, '别：')
-    if patient_sex:
-        patient_sex = re.sub(r'.*：', '性别：', patient_sex)
-    else:
-        patient_name = '性别：'
-    patient_age = PRE_pross.charactor_match_count_name_age(report_overview, '龄：')
-    if patient_age:
-        patient_age = re.sub(r'.*：', '年龄：', patient_age)
-    else:
-        patient_name = '年龄：'
-    '''
+
     if hospital is None:
         # print('未能识别医院信息')
         return '错误：未能识别所属医院，请拍摄完整的报告单图片，并保证纸面平整'
@@ -106,11 +102,9 @@ def main_pross(cvimg, demo_or_not):
         return keys_read
     '''
     def read_keywords(path):
-        #keywords_conf_path = f'conf/[关键词]{type}.conf'
         keys = configparser_custom()
         keys.read(path, 'UTF-8')
         keys_read = keys.items("keywords")
-        # keys_list = []
         return keys_read
 
     '''
@@ -160,21 +154,6 @@ def main_pross(cvimg, demo_or_not):
                              conf_path='conf')
     path_suffix = f'-{report_type}'
 
-    '''
-    n = 0.00
-    for w in range(len(blood_keys_read)):
-        blood_keys_list.append(blood_keys_read[w][1])
-        if PRE_pross.charactor_match_count_name_age(report_overview, blood_keys_list[w]):
-            n = n + 1.00
-    if n >= (float(len(blood_keys_read))) / 2:
-        print("-是血常规-")
-        is_blood_test = "是血常规"
-        path_suffix = '-血常规'
-    else:
-        print('-不是血常规-')
-        is_blood_test = "不是血常规"
-        return '错误：目前仅支持血常规，请勿上传其他类型报告'
-    '''
     conf_path = f'conf/{path_prefix}{path_suffix}.conf'
     if os.path.exists(conf_path) is False:
         # print('配置文件不存在')
@@ -189,6 +168,7 @@ def main_pross(cvimg, demo_or_not):
     conf = configparser_custom()
     conf.read(conf_path, 'UTF-8')
     boxes_conf = conf.items("boxes")
+    # dict_boxes_conf = conf.as_dict()["boxes"]
     name_list = []
     # box_list[] 格式:[左，右，上，下]
     box_list = []
@@ -313,6 +293,10 @@ def main_pross(cvimg, demo_or_not):
     value_out_position2 = []
     range_out2 = []
     range_out_position2 = []
+    unit_out = []
+    unit_out_position = []
+    unit_out2 = []
+    unit_out_position2 = []
     for i in range(len(answer)):
         if i == 0:
             for j in range(len(answer[i][0]['data'])):
@@ -347,7 +331,88 @@ def main_pross(cvimg, demo_or_not):
         return '错误：没有识别到有效数据'
 
     # 开始根据坐标对齐
+    def data_align_new(input_list):
+        '''
+        此处导入list
+        '''
+        # todo 如何改进定义严格程度使更精准（单位像素）
+        judge = 10.0
+        # 初始化输出列表
+        list_out = []
+        # 确定每行共有多少列
+        number_of_columns = len(input_list)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
+        # number_of_columns = int(len(input_list)/2)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
+
+        def get_h_location_func(child_list_input):
+            list_name_h_location_output = []
+            for i in range(len(child_list_input)):  # 遍历第一次识别的所有结果
+
+                h_u = 0.5 * (float(child_list_input[i]['text_box_position'][0][1]) +
+                             float(child_list_input[i]['text_box_position'][1][1]))
+                h_d = 0.5 * (float(child_list_input[i]['text_box_position'][2][1]) +
+                             float(child_list_input[i]['text_box_position'][3][1]))
+                h_location = 0.5 * (h_u + h_d)  # 确定每一项的高度位置
+                list_name_h_location_output.append(h_location)
+            return list_name_h_location_output
+
+        list_name_h_location = get_h_location_func(input_list[0][0]['data'])
+
+        # 解决一行名字被识别为两项的情况（名字中间有过长空格）
+
+        list_invalid_name = []  # 记录无效项
+        for i in range(len(list_name_h_location)):
+            if i in list_invalid_name:
+                pass
+            else:
+                for j in range(len(list_name_h_location)):
+                    if j <= i:
+                        pass
+                    else:
+                        if abs(list_name_h_location[i]-list_name_h_location[j]) < judge:
+                            list_invalid_name.append(j)
+
+        list_name_correct = []
+        list_name_position_correct = []
+        for i in range(len(input_list[0][0]['data'])):
+            if i in list_invalid_name:
+                for n in range(4):  # 往前推，合并到最近的正常项
+                    if i-1-n in list_invalid_name:
+                        pass
+                    else:
+                        list_name_correct[-1] = list_name_correct[-1]+' '+(input_list[0][0]['data'][i]['text'])  # 向前合并
+                        break
+                pass
+            else:
+                list_name_correct.append(input_list[0][0]['data'][i]['text'])  # 第一次组合，先填入行名字(检测项目名)
+                list_name_position_correct.append(list_name_h_location[i])
+        for i in range(len(list_name_correct)):  # 以下开始组合每一条数据
+            list_out_child = []
+            list_out_child.append(list_name_correct[i])  # 确定第一项：名字
+            for k in range(1, number_of_columns):
+
+                if len(input_list[k][0]['data']) == 0:
+                    list_out_child.append('空')
+                    pass
+                else:
+                    list_diy_h_location = get_h_location_func(input_list[k][0]['data'])  # 确定其他项的高度
+                    for l in range(len(list_diy_h_location)):
+                        if abs(list_name_position_correct[i] - list_diy_h_location[l]) < judge:  # todo 如何判断高度最近
+                            list_out_child.append(input_list[k][0]['data'][l]['text'])
+                            break
+                        else:
+                            pass
+                    if len(list_out_child) == k:
+                        list_out_child.append('空')
+            list_out.append(list_out_child)
+
+
+        return list_out
+
+
     def data_align(list_name, list_name_position, list_value, list_value_position, list_range, list_range_position):
+        # 定义严格程度（单位像素）
+        judge = 10.0
+        # 初始化输出列表
         list_out = []
         for i in range(len(list_name)):
             list_out_child = []
@@ -357,25 +422,31 @@ def main_pross(cvimg, demo_or_not):
 
             list_out_child.append(list_name[i])
 
-            for j in range(len(list_value)):
+            #for j in range(len(list_value)):
+            for j in range(len(list_value) - 1, -1, -1):
+            # while j < len(list_value):
                 height_up2 = 0.5 * (float(list_value_position[j][0][1]) + float(list_value_position[j][1][1]))
                 height_down2 = 0.5 * (float(list_value_position[j][2][1]) + float(list_value_position[j][3][1]))
                 height_should2 = 0.5 * (height_up2 + height_down2)
 
-                if abs(height_should-height_should2) <= 5.0:
+                if abs(height_should-height_should2) <= judge:
                     list_out_child.append(list_value[j])
+                    list_value.pop(j)
                     break
                 else:
                     pass
             if len(list_out_child) == 1:
                 list_out_child.append('空')
 
-            for k in range(len(list_range)):
+            # for k in range(len(list_range)):
+            for k in range(len(list_range) - 1, -1, -1):
+            # while k < len(list_range):
                 height_up3 = 0.5 * (float(list_range_position[k][0][1]) + float(list_range_position[k][1][1]))
                 height_down3 = 0.5 * (float(list_range_position[k][2][1]) + float(list_range_position[k][3][1]))
                 height_should3 = 0.5 * (height_up3 + height_down3)
-                if abs(height_should-height_should3) <= 5.0:
+                if abs(height_should-height_should3) <= judge:
                     list_out_child.append(list_range[k])
+                    list_range.pop(k)
                     break
                 else:
                     pass
@@ -384,9 +455,25 @@ def main_pross(cvimg, demo_or_not):
             list_out.append(list_out_child)
         return list_out
 
+    '''
     list_new = data_align(name_out, name_out_position, value_out, value_out_position, range_out, range_out_position)
     list_new2 = data_align(name_out2, name_out_position2, value_out2, value_out_position2, range_out2, range_out_position2)
     list_new.extend(list_new2)
+    '''
+
+    if int(len(answer)) % 2 == 1:
+        print('需要对齐的列表有问题')
+        return '错误:需要对齐的列表有问题'
+    answer1 = []
+    answer2 = []
+    for i in range(len(answer)):
+        if i < int(len(answer)/2):
+            answer1.append(answer[i])
+        else:
+            answer2.append(answer[i])
+    list_direct = data_align_new(answer1)
+    list_direct2 = data_align_new(answer2)
+    list_direct.extend(list_direct2)
 
     # 旧 数据复原等待处理
     '''
@@ -412,13 +499,16 @@ def main_pross(cvimg, demo_or_not):
     '''
     # 新 JSON化
     bloodtest_list = []
-    for i in range(len(list_new)):
+    for i in range(len(list_direct)):
         bloodtest_single = OrderedDict()
-        bloodtest_single["name"] = list_new[i][0]
-        bloodtest_single["value"] = list_new[i][1]
-        bloodtest_single["range"] = list_new[i][2]
+        bloodtest_single["name"] = list_direct[i][0]
+        bloodtest_single["value"] = list_direct[i][1]
+        bloodtest_single["value2"] = ''
+        bloodtest_single["range"] = ''
         bloodtest_single["alias"] = ''
-        bloodtest_single["unit"] = ''
+        bloodtest_single["ratio"] = ''
+        bloodtest_single["ratio2"] = ''
+        bloodtest_single["unit"] = list_direct[i][2]
         bloodtest_list.append(bloodtest_single)
 
     # 加入附加信息
@@ -454,4 +544,6 @@ if __name__ == '__main__':
     img_orig_path = 'OCR_IMG/Input_IMG/zs-blood-normal.jpg'
     img_input = PRE_pross.cv_imread_chs(img_orig_path)
 
-    main_pross(img_input, demo_or_not=1)
+    main_pross(cvimg=img_input,
+               demo_or_not=1,
+               hospital_lock=False)
