@@ -1,7 +1,7 @@
 python==3.7
 pip
-paddlepaddle-gpu
 paddlehub
+paddlepaddle-gpu==2.2.2
 opencv-contrib-python
 scipy
 shapely

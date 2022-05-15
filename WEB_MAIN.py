@@ -82,13 +82,14 @@ def upload():
 
             report_data = MAIN_PROSS.main_pross(cvimg=img,
                                                 demo_or_not=demo_or_not,
-                                                hospital_lock=True,
-                                                report_type_lock=True)
+                                                hospital_lock=False,
+                                                report_type_lock=False)
             # 判断是否报错，中文开头为错误
 
             err_or_not = PRE_pross.charactor_match_chinese_head(report_data)
             if err_or_not is True:
-                print(Back.RED+report_data)
+                print(Back.RED+'******')
+                print(report_data)
                 data = {
                     'error': report_data,
                 }

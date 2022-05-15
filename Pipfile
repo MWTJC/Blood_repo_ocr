@@ -1,0 +1,19 @@
+[[source]]
+url = "http://mirrors.aliyun.com/simple"
+verify_ssl = false
+name = "aliyun"
+
+[packages]
+paddlehub = "*"
+opencv-contrib-python = "*"
+scipy = "*"
+shapely = "*"
+pyclipper = "*"
+pymongo = "==3.9"
+paddlepaddle-gpu= "==2.2.2"
+pyinstaller = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"

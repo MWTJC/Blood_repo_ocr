@@ -63,7 +63,120 @@ def net_OCR(cvimg):
     return r
 
 
-def data_align_new(input_body_list, list_title):
+def data_align_v2(input_body_list, list_title):
+    '''
+    此处导入识别体list和每一列的数据名称
+    :return: list
+    '''
+    # todo 如何改进定义严格程度使更精准（单位像素）
+    # 目前仅在合并无效行开头（项目名）使用了judge_new
+    # 初始化输出列表
+    list_out = []
+    dict_out = []
+
+    # 确定每行共有多少列
+    number_of_columns = len(input_body_list)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
+
+    # number_of_columns = int(len(input_list)/2)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
+
+    def get_h_location_func(child_list_input):
+        list_name_h_location_output = []
+        for i in range(len(child_list_input)):  # 遍历第一次识别的所有结果
+
+            h_u = 0.5 * (float(child_list_input[i]['text_box_position'][0][1]) +
+                         float(child_list_input[i]['text_box_position'][1][1]))
+            h_d = 0.5 * (float(child_list_input[i]['text_box_position'][2][1]) +
+                         float(child_list_input[i]['text_box_position'][3][1]))
+            h_location = 0.5 * (h_u + h_d)  # 确定每一项的高度位置(取4个点的竖座标取平均值)
+            list_name_h_location_output.append(h_location)
+        return list_name_h_location_output
+
+    list_name_h_location = get_h_location_func(input_body_list[0][0]['data'])  # 确定项目名称高度坐标
+
+    list_name_h_location_avg = []
+    for i in range(len(list_name_h_location)-1):
+        list_name_h_location_avg.append(list_name_h_location[i+1]-list_name_h_location[i])
+    judge_new = sum(list_name_h_location_avg)/(len(list_name_h_location_avg))
+    judge_new = judge_new * 0.3
+
+    # 解决一行名字被识别为两项的情况（名字中间有过长空格，对处于同一高度的项目进行合并）
+    list_invalid_name = []  # 记录无效项
+    for i in range(len(list_name_h_location)):
+        if i in list_invalid_name:
+            pass
+        else:
+            for j in range(len(list_name_h_location)):
+                if j <= i:
+                    pass
+                else:
+                    if abs(list_name_h_location[i] - list_name_h_location[j]) < judge_new:
+                        list_invalid_name.append(j)
+
+    list_name_correct = []  # 经过确认的有效行头
+    list_name_position_correct = []
+    for i in range(len(input_body_list[0][0]['data'])):
+        if i in list_invalid_name:
+            for n in range(4):  # 往前推，合并到最近的正常项
+                if i - 1 - n in list_invalid_name:
+                    pass
+                else:
+                    list_name_correct[-1] = list_name_correct[-1] + ' ' + (
+                        input_body_list[0][0]['data'][i]['text'])  # 向前合并
+                    break
+            pass
+        else:
+            list_name_correct.append(input_body_list[0][0]['data'][i]['text'])  # 第一次组合，先填入行名字(检测项目名)
+            list_name_position_correct.append(list_name_h_location[i])
+    # 无效检测项目合并完毕
+
+    for i in range(len(list_name_correct)):  # 以下开始组合每一条数据
+        list_out_child = []
+
+        dict_out_child = dict()
+
+        list_out_child.append(list_name_correct[i])  # 确定第一项：名字
+
+        dict_out_child[list_title[0]] = list_name_correct[i]
+
+        for k in range(1, number_of_columns):  # 按照竖行循环
+
+            if len(input_body_list[k][0]['data']) == 0:
+                list_out_child.append('空')
+
+                dict_out_child[list_title[k]] = '空'
+
+                pass
+            else:
+                list_diy_h_location = get_h_location_func(input_body_list[k][0]['data'])  # 确定其他项的高度
+
+
+                for l in range(len(list_diy_h_location)):  # 改为逐项匹配
+                    column_head_diff = []
+                    for m in range(len(list_name_position_correct)):
+                        column_head_diff.append(abs(list_name_position_correct[m] - list_diy_h_location[l]))
+                    # 以下开始寻找最近的项，对齐
+                    for _ in range(2):
+                        min_number = min(column_head_diff)
+                        min_index = column_head_diff.index(min_number)
+                        # column_head_diff[min_index] = 0  # 得到最小项
+                    if i == min_index:
+                        list_out_child.append(input_body_list[k][0]['data'][l]['text'])
+                        dict_out_child[list_title[k]] = input_body_list[k][0]['data'][l]['text']
+
+
+                if len(list_out_child) == k:
+                    list_out_child.append('空')
+
+                    dict_out_child[list_title[k]] = '空'
+
+        list_out.append(list_out_child)
+
+        dict_out.append(dict_out_child)
+
+    return list_out, dict_out
+
+
+def data_align_old(input_body_list, list_title):
     '''
     此处导入识别主体list和每一列的数据名称
     :return: list
@@ -87,13 +200,16 @@ def data_align_new(input_body_list, list_title):
                          float(child_list_input[i]['text_box_position'][1][1]))
             h_d = 0.5 * (float(child_list_input[i]['text_box_position'][2][1]) +
                          float(child_list_input[i]['text_box_position'][3][1]))
-            h_location = 0.5 * (h_u + h_d)  # 确定每一项的高度位置
+            h_location = 0.5 * (h_u + h_d)  # 确定每一项的高度位置(取4个点的竖座标取平均值)
             list_name_h_location_output.append(h_location)
         return list_name_h_location_output
 
-    list_name_h_location = get_h_location_func(input_body_list[0][0]['data'])
-
-    # 解决一行名字被识别为两项的情况（名字中间有过长空格）
+    list_name_h_location = get_h_location_func(input_body_list[0][0]['data'])  # 确定项目名称高度坐标
+    list_name_h_location_avg = []
+    for i in range(len(list_name_h_location)-1):
+        list_name_h_location_avg.append(list_name_h_location[i+1]-list_name_h_location[i])
+    judge_new = sum(list_name_h_location_avg)/(len(list_name_h_location_avg))
+    # 解决一行名字被识别为两项的情况（名字中间有过长空格，对处于同一高度的项目进行合并）
 
     list_invalid_name = []  # 记录无效项
     for i in range(len(list_name_h_location)):
@@ -104,7 +220,7 @@ def data_align_new(input_body_list, list_title):
                 if j <= i:
                     pass
                 else:
-                    if abs(list_name_h_location[i] - list_name_h_location[j]) < judge:
+                    if abs(list_name_h_location[i] - list_name_h_location[j]) < judge_new:
                         list_invalid_name.append(j)
 
     list_name_correct = []
@@ -142,7 +258,7 @@ def data_align_new(input_body_list, list_title):
             else:
                 list_diy_h_location = get_h_location_func(input_body_list[k][0]['data'])  # 确定其他项的高度
                 for l in range(len(list_diy_h_location)):
-                    if abs(list_name_position_correct[i] - list_diy_h_location[l]) < judge:  # todo 如何判断高度最近
+                    if abs(list_name_position_correct[i] - list_diy_h_location[l]) < judge_new:  # todo 如何判断高度最近
                         list_out_child.append(input_body_list[k][0]['data'][l]['text'])
 
                         dict_out_child[list_title[k]] = input_body_list[k][0]['data'][l]['text']
@@ -208,7 +324,7 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
         return '错误：OCR离线'
     elif len(pre_response.json()["results"]) == 0:
         # print('OCRERR')
-        return f'错误：OCR没有正常工作,{pre_response.text}'
+        return f'错误：OCR没有正常工作：\n{pre_response.json()["msg"]}'
     # pprint(pre_response.json()["results"][0]["data"])
     report_overview = []
     for i in range(len(pre_response.json()["results"][0]["data"])):
@@ -361,10 +477,22 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     # 格式说明： ?_position[],先长后高，左上开始顺时针4点
 
     # 开始根据坐标对齐
+    # todo 改善对齐
 
     if int(len(answer)) % 2 == 1:
         print('需要对齐的列表有问题')
         return '错误:需要对齐的列表有问题'
+
+    # todo 将坐标信息根据配置文件还原对齐
+    '''
+    # 因为使用了ocr图片加白边避免ocr不识别的bug，故此处仍需改进
+    for i in range(len(answer)):
+        for j in range(len(answer[i][0]['data'])):
+            for k in range(len(answer[i][0]['data'][j]['text_box_position'])):
+                answer[i][0]['data'][j]['text_box_position'][k][0] = answer[i][0]['data'][j]['text_box_position'][k][0] + box_list[i][0]
+                answer[i][0]['data'][j]['text_box_position'][k][0] = answer[i][0]['data'][j]['text_box_position'][k][1] + box_list[i][2]
+    '''
+
     answer1 = []
     answer2 = []
     list_title1 = []
@@ -376,8 +504,8 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
         else:
             answer2.append(answer[i])
             list_title2.append(list_title[i])
-    list_direct, dict_direct = data_align_new(answer1, list_title1)
-    list_direct2, dict_direct2 = data_align_new(answer2, list_title2)
+    list_direct, dict_direct = data_align_v2(answer1, list_title1)
+    list_direct2, dict_direct2 = data_align_v2(answer2, list_title2)
     list_direct.extend(list_direct2)
     dict_direct.extend(dict_direct2)
 

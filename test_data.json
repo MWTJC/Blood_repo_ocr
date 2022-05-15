@@ -66,20 +66,20 @@
         },
         {
             "name": "RVSTLC-SB",
-            "unit": "[81",
+            "unit": "空",
             "range": "25.08",
             "value": "49.36",
             "ratio": "196.8"
         },
         {
-            "name": "TLC-SB",
-            "unit": "[T]",
+            "name": "TIC-SB",
+            "unit": "[L]",
             "range": "5.89",
             "value": "5.57",
             "ratio": "94.6"
         },
         {
-            "name": "DLCO↑SB",
+            "name": "DICO↑SB",
             "unit": "空",
             "range": "9.50",
             "value": "11.01",
@@ -87,28 +87,28 @@
         },
         {
             "name": "DLCO/VA",
-            "unit": "空",
+            "unit": "[mmol/min/kPa]",
             "range": "1.70",
             "value": "2.02",
             "ratio": "118.8"
         },
         {
             "name": "工",
-            "unit": "空",
-            "range": "空",
+            "unit": "[mmol/min/kPa/L]",
+            "range": "3.05",
             "value": "9.74",
             "ratio": "空"
         },
         {
             "name": "FRC-SB",
-            "unit": "空",
-            "range": "3.05",
+            "unit": "[s]",
+            "range": "空",
             "value": "4.12",
             "ratio": "135.0"
         },
         {
             "name": "FRCTLC-SB",
-            "unit": "空",
+            "unit": "[]",
             "range": "47.04",
             "value": "73.98",
             "ratio": "157.3"
@@ -116,7 +116,7 @@
         {
             "name": "复旦大学附属华山医院-肺功能",
             "value": "年龄：",
-            "range": null,
+            "range": "性别：",
             "alias": "空白信息2",
             "unit": null
         }

@@ -3,8 +3,14 @@ paddleHUB切换为显卡：复制配置文件到C:\Users\MI\.paddlehub\modules\c
 
 运行要求：paddlehub启动：
 
-conda Prompt：
+- anaconda Prompt:
 
-hub serving start -m chinese_ocr_db_crnn_mobile -p 8866
+  activate [T]Blood_repo_ocr
+
+  hub serving start -m chinese_ocr_db_crnn_mobile -p 8866
+
+- pipenv Prompt：
+
+  hub serving start -m chinese_ocr_db_crnn_mobile -p 8866
 
 mongoDB启动
