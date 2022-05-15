@@ -14,6 +14,7 @@ if __name__ == '__main__':
             '--add-data=static;static',  # 打包包含的静态资源
             '--add-data=conf;conf',  # 打包
             '--add-data=OCR_IMG;OCR_IMG',  # 打包
+            '--add-data=readme.md;运行说明.md',  # 打包
             '--add-data=C:/Users/TJC/.paddlehub/modules/chinese_ocr_db_crnn_mobile/module.py;conf',
             # '--distpath=build', # 最终位置
             '--specpath=./'
