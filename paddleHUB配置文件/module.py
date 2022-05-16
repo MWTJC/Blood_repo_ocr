@@ -5,6 +5,7 @@ import copy
 import math
 import os
 import time
+# 此处更改显卡设备号
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 from paddle.fluid.core import AnalysisConfig, create_paddle_predictor, PaddleTensor
 from paddlehub.common.logger import logger
