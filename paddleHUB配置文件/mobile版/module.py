@@ -66,15 +66,16 @@ class ChineseOCRDBCRNN(hub.Module):
             _places = os.environ["CUDA_VISIBLE_DEVICES"]
             int(_places[0])
             use_gpu = True
-            print('gpu_on')
+            print('GPUID_True')
         except:
             use_gpu = False
-
+            print('GPUID_ERR,switch to cpu')
         if use_gpu:
             config.enable_use_gpu(8000, 0)
-            print('gpu_on')
+            print('GPU_on')
         else:
             config.disable_gpu()
+            print('Enable_GPU_failed')
             if self.enable_mkldnn:
                 # cache 10 different shapes for mkldnn to avoid memory leak
                 config.set_mkldnn_cache_capacity(10)
@@ -184,7 +185,7 @@ class ChineseOCRDBCRNN(hub.Module):
     def recognize_text(self,
                        images=[],
                        paths=[],
-                       use_gpu=True,
+                       use_gpu=False,
                        output_dir='ocr_result',
                        visualization=False,
                        box_thresh=0.5,

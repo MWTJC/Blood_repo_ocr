@@ -50,7 +50,7 @@ def net_OCR(cvimg):
     # 发送HTTP请求
     data = {'images': [cv2_to_base64(cvimg)]}
     headers = {"Content-type": "application/json"}
-    url = "http://127.0.0.1:8866/predict/chinese_ocr_db_crnn_mobile"
+    url = "http://127.0.0.1:8866/predict/chinese_ocr_db_crnn_server"
     try:
         r = requests.post(url=url, headers=headers, data=json.dumps(data))
     except ConnectionRefusedError:

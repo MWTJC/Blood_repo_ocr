@@ -25,8 +25,8 @@ https://www.mongodb.com/try/download/community
 + paddlehub
 + mongoDB
 
-* paddleHUB切换为显卡计算的方法：安装cuda和cudnn后，复制paddleHUB配置文件到C:\Users\你的用户名\.paddlehub\modules\chinese_ocr_db_crnn_mobile
-并改显卡ID，如果没有此文件夹请运行paddlehub一遍（根据任务管理器的独显标号为准）
+* paddleHUB切换为显卡计算的方法：安装cuda和cudnn后，复制paddleHUB配置文件到C:\Users\"你的用户名"\\.paddlehub\modules\chinese_ocr_db_crnn_server
+并改显卡ID，如果没有此文件夹请运行paddlehub一遍（一般台式为0，笔记本为1，根据任务管理器的独显标号为准）
 
 ##运行方法：
 
@@ -37,11 +37,11 @@ https://www.mongodb.com/try/download/community
   activate [T]Blood_repo_ocr 
 （切换至相应虚拟环境）
 
-  hub serving start -m chinese_ocr_db_crnn_mobile -p 8866
+  hub serving start -m chinese_ocr_db_crnn_server -p 8866
 
 - 如果是pipenv Prompt：
 
-  hub serving start -m chinese_ocr_db_crnn_mobile -p 8866
+  hub serving start -m chinese_ocr_db_crnn_server -p 8866
 
 2. 主程序启动：
 + 开发环境：运行WEB_MAIN.py

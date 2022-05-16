@@ -216,7 +216,10 @@ if __name__ == '__main__':
             os.mkdir('temp/DEMO')
             os.mkdir('temp/ocr_result')
             os.mkdir('temp/DEMO/mask')
-
+        '''
+        # 启动hub(不支持网络，废弃)
+        module = hub.Module(name="chinese_ocr_db_crnn_server")
+        '''
         app.run(host=app.config['SERVER_HOST'], port=app.config['SERVER_PORT'])
 
     demo_or_not = 1
