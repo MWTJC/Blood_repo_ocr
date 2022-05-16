@@ -1,5 +1,5 @@
-#如何安装并运行此项目：
-##安装
+# 如何安装并运行此项目：
+## 安装
 1. 下载并解压此项目
 
 2. 此项目建议使用Python3.6，为方便管理，建议使用虚拟环境（venv（或称为pipenv）或者Anaconda皆可）
@@ -15,11 +15,11 @@ https://www.mongodb.com/try/download/community
 
 5. 参照下面的“运行方法”部分进行运行。
 
-####至此，主程序可以运行基于cpu的识别存储并显示显示用户界面。
+#### 至此，主程序可以运行基于cpu的识别存储并显示显示用户界面。
 
 + 本项目可以将数据库与OCR识别服务器在局域网上的其他设备上分开启动运行。
 
-##目前所需要的运行条件（显卡计算）：
+## 目前所需要的运行条件（显卡计算）：
 
 + cuda10.2+cudnn7（paddleOCR运行所需）
 + paddlehub
@@ -28,7 +28,7 @@ https://www.mongodb.com/try/download/community
 * paddleHUB切换为显卡计算的方法：安装cuda和cudnn后，复制paddleHUB配置文件到C:\Users\"你的用户名"\\.paddlehub\modules\chinese_ocr_db_crnn_server
 并改显卡ID，如果没有此文件夹请运行paddlehub一遍（一般台式为0，笔记本为1，根据任务管理器的独显标号为准）
 
-##运行方法：
+## 运行方法：
 
 1. paddlehub启动：
 
