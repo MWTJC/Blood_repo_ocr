@@ -9,6 +9,7 @@ import numpy
 
 from PIL import Image
 from colorama import init, Fore, Back
+
 init(autoreset=True)
 from bson.json_util import dumps
 from flask import Flask, request, Response, jsonify, redirect, json, flash, abort
@@ -22,7 +23,6 @@ import os
 import PRE_pross
 import MAIN_PROSS
 
-
 app = Flask(__name__, static_url_path="")
 app.secret_key = '123456'
 
@@ -30,11 +30,11 @@ app.secret_key = '123456'
 app.config.from_pyfile('conf/flask_config.cfg')
 
 # 连接数据库，并获取数据库对象
-db = MongoClient(app.config['DB_HOST'], app.config['DB_PORT']).test
+db = MongoClient(app.config['DB_HOST'], app.config['DB_PORT']).HOS_REPO
 
 
 # 将矫正后图片与图片识别结果（JSON）存入数据库
-def save_file(file_str, f, report_data):
+def save_file(file_str, f, report_data, db_data):
     # content = StringIO(file_str)
     content = file_str
 
@@ -46,7 +46,7 @@ def save_file(file_str, f, report_data):
     except IOError:
         abort(400)
     c = dict(report_data=report_data, content=file_str, filename=secure_filename(f.name),
-             mime=mime)
+             mime=mime, repo_db=db_data)
 
     db.files.save(c)
 
@@ -80,20 +80,20 @@ def upload():
             # todo 是否需要本地存储中转
             '''
 
-            report_data = MAIN_PROSS.main_pross(cvimg=img,
+            report_data_str = MAIN_PROSS.main_pross(cvimg=img,
                                                 demo_or_not=demo_or_not,
                                                 hospital_lock=False,
                                                 report_type_lock=False)
             # 判断是否报错，中文开头为错误
 
-            err_or_not = PRE_pross.charactor_match_chinese_head(report_data)
+            err_or_not = PRE_pross.charactor_match_chinese_head(report_data_str)
             if err_or_not is True:
-                print(Back.RED+'******')
-                print(report_data)
+                print(Back.RED + '******')
+                print(report_data_str)
                 data = {
-                    'error': report_data,
+                    'error': report_data_str,
                 }
-                flash(report_data)
+                flash(report_data_str)
                 return jsonify(data)
 
             # todo 开始更改
@@ -101,6 +101,10 @@ def upload():
             img = cv2.imread(path_img_toDB)
             w = img.shape[1]
             h = img.shape[0]
+
+            with open('test_data.json', 'r') as f:
+                db_data = json.load(f)
+
 
             with open(path_img_toDB, "rb") as f:
                 if f is None:
@@ -110,22 +114,22 @@ def upload():
                     '''
                         定义file_str存储矫正后的图片文件f的内容（str格式）,方便之后将图片内容存储至数据库中
                     '''
-                    file_str = f.read()
+                    img_file_str = f.read()
                     # file_str = MAIN_PROSS.cv2_to_base64(cv2.imread(path_img_toDB))
                     try:
-                        fid, filename = save_file(file_str, f, report_data)
+                        fid, filename = save_file(img_file_str, f, report_data_str, db_data)
                     except:
-                        print(Back.RED+'DB离线')
+                        print(Back.RED + 'DB离线')
                         data = {
                             'error': '错误：MongoDB离线',
                         }
-                        flash(report_data)
+                        flash(report_data_str)
                         return jsonify(data)
             print('fid:', fid)
             if fid is not None:
                 # 假设锁定网页显示高度为512：h=512, 所以w=512*(w/h)
                 display_height = 512
-                templates = f"<div align='center'><img id=\'filtered-report\' src=\'/file/%s\' class=\'file-preview-image\' width=\'{int(display_height*(w/h))}\' height=\'{display_height}\'></div>" % (
+                templates = f"<div align='center'><img id=\'filtered-report\' src=\'/file/%s\' class=\'file-preview-image\' width=\'{int(display_height * (w / h))}\' height=\'{display_height}\'></div>" % (
                     fid)
                 data = {
                     "templates": templates,
@@ -221,6 +225,7 @@ if __name__ == '__main__':
         module = hub.Module(name="chinese_ocr_db_crnn_server")
         '''
         app.run(host=app.config['SERVER_HOST'], port=app.config['SERVER_PORT'])
+
 
     demo_or_not = 1
     run()

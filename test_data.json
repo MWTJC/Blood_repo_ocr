@@ -1,126 +1,117 @@
 {
-    "version": "0.3",
+    "hospital": "复旦大学附属华山医院",
+    "repo_type": "-肺功能",
+    "repo_date": "报告日期：2019-10-10",
+    "name": "年龄：",
+    "age": "None",
+    "sex": "性别：女",
     "bloodtest": [
         {
-            "name": "PIMAX",
+            "name": "P工 MAX",
             "unit": "[kPa]",
-            "range": "11.15",
-            "value": "2.65",
-            "ratio": "23.8"
+            "range": "10.88",
+            "value": "1.68",
+            "ratio": "15.4"
         },
         {
-            "name": "PEMAX",
+            "name": "P MAX",
             "unit": "[kPa]",
-            "range": "14.81",
-            "value": "1.99",
-            "ratio": "13.4"
+            "range": "7.45",
+            "value": "5.83",
+            "ratio": "78.3"
         },
         {
-            "name": "P0.1MAX",
+            "name": "P0.1 MAX",
             "unit": "[kPa]",
-            "range": "7.81",
+            "range": "7.62",
             "value": "空",
             "ratio": "空"
         },
         {
             "name": "P0.1",
             "unit": "[kPa]",
-            "range": "0.17",
-            "value": "0.44",
-            "ratio": "256.1"
+            "range": "0.20",
+            "value": "0.86",
+            "ratio": "429.5"
         },
         {
-            "name": "PO.1/PIMAX",
+            "name": "PO.1/PTMAX",
             "unit": "空",
             "range": "0.02",
-            "value": "0.17",
-            "ratio": "1100"
+            "value": "0.51",
+            "ratio": "2839.3"
         },
         {
-            "name": "P0.1/P0.1MAX",
+            "name": "PO.1／PO.1MAX",
             "unit": "空",
-            "range": "0.02",
+            "range": "0.03",
             "value": "空",
             "ratio": "空"
         },
         {
-            "name": "B",
+            "name": "BF",
             "unit": "[1/min]",
             "range": "20.00",
-            "value": "37.58",
-            "ratio": "187.9"
+            "value": "29.07",
+            "ratio": "145.4"
         },
         {
             "name": "MV",
-            "unit": "[工/min]",
-            "range": "8.57",
-            "value": "46.26",
-            "ratio": "539.7"
+            "unit": "[L/min]",
+            "range": "10.00",
+            "value": "42.22",
+            "ratio": "422.3"
         },
         {
             "name": "RV-SB",
-            "unit": "[L]",
-            "range": "1.51",
-            "value": "2.75",
-            "ratio": "181.8"
+            "unit": "[工]",
+            "range": "1.75",
+            "value": "1.87",
+            "ratio": "106.8"
         },
         {
             "name": "RV8TLC-SB",
             "unit": "[8]",
-            "range": "25.08",
-            "value": "49.36",
-            "ratio": "196.8"
+            "range": "36.30",
+            "value": "47.68",
+            "ratio": "131.3"
         },
         {
             "name": "TLC-SB",
             "unit": "[L]",
-            "range": "5.89",
-            "value": "5.57",
-            "ratio": "94.6"
+            "range": "4.90",
+            "value": "3.91",
+            "ratio": "79.8"
         },
         {
             "name": "DLCO SB",
             "unit": "空",
-            "range": "9.50",
-            "value": "11.01",
-            "ratio": "115.9"
+            "range": "1.63",
+            "value": "1.31",
+            "ratio": "61.6"
         },
         {
             "name": "DLCO/VA",
-            "unit": "[mmo1/min/kPa]",
-            "range": "1.70",
-            "value": "2.02",
-            "ratio": "118.8"
-        },
-        {
-            "name": "TA",
-            "unit": "[mmol/min/kPa/L]",
+            "unit": "[mmol/min/kPa]",
             "range": "空",
-            "value": "9.74",
-            "ratio": "空"
+            "value": "9.40",
+            "ratio": "80.3"
         },
         {
             "name": "FRC-SB",
             "unit": "[s]",
-            "range": "3.05",
-            "value": "4.12",
-            "ratio": "135.0"
+            "range": "53.26",
+            "value": "68.12",
+            "ratio": "99.5"
         },
         {
-            "name": "FRCTLC-SB",
+            "name": "FRCETLC-SB",
             "unit": "[8]",
-            "range": "47.04",
-            "value": "73.98",
-            "ratio": "157.3"
-        },
-        {
-            "name": "复旦大学附属华山医院-肺功能",
-            "value": "年龄：",
-            "range": "性别：",
-            "alias": "空白信息2",
-            "unit": null
+            "range": "空",
+            "value": "空"
         }
     ],
+    "write_time": "2022-05-21 20:38:11.767579",
     "explain": {
         "used": true,
         "details": "json生成测试"

@@ -5,6 +5,8 @@ from pprint import pprint
 from glob import glob
 from string import digits
 import re
+
+import numpy
 import requests
 import json
 import cv2
@@ -21,6 +23,7 @@ import os
 from collections import defaultdict, OrderedDict
 import PRE_pross
 import configparser
+from datetime import datetime
 
 
 class configparser_custom(configparser.ConfigParser):  # 解决默认被转换为小写问题
@@ -39,6 +42,32 @@ class configparser_custom(configparser.ConfigParser):  # 解决默认被转换�
         for k in d:
             d[k] = dict(d[k])
         return d
+
+
+class class_knn_match_new:
+    def __init__(self):
+        self.img_template = numpy.ndarray
+        self.img_need_match = numpy.ndarray
+        self.demo_or_not = bool
+
+
+class class_answer_ocr_return:
+    def __init__(self):
+        self.name = ''  # 名称
+        self.size = 10  # 尺寸
+        self.list = []  # 列表
+
+
+class class_report_json:
+    def __init__(self):
+        self.hos_name = ''  # 所属医院
+        self.repo_type = ''  # 报告类型
+        self.name = ''  # 姓名
+        self.age = ''  # 年龄
+        self.sex = ''  # 性别
+        self.repo_data = ''  # 报告时间
+
+        self.list = []  # todo 列表
 
 
 def cv2_to_base64(image):
@@ -94,9 +123,9 @@ def data_align_v2(input_body_list, list_title):
     list_name_h_location = get_h_location_func(input_body_list[0][0]['data'])  # 确定项目名称高度坐标
 
     list_name_h_location_avg = []
-    for i in range(len(list_name_h_location)-1):
-        list_name_h_location_avg.append(list_name_h_location[i+1]-list_name_h_location[i])
-    judge_new = sum(list_name_h_location_avg)/(len(list_name_h_location_avg))
+    for i in range(len(list_name_h_location) - 1):
+        list_name_h_location_avg.append(list_name_h_location[i + 1] - list_name_h_location[i])
+    judge_new = sum(list_name_h_location_avg) / (len(list_name_h_location_avg))
     judge_new = judge_new * 0.3
 
     # 解决一行名字被识别为两项的情况（名字中间有过长空格，对处于同一高度的项目进行合并）
@@ -149,7 +178,6 @@ def data_align_v2(input_body_list, list_title):
             else:
                 list_diy_h_location = get_h_location_func(input_body_list[k][0]['data'])  # 确定其他项的高度
 
-
                 for l in range(len(list_diy_h_location)):  # 改为逐项匹配
                     column_head_diff = []
                     for m in range(len(list_name_position_correct)):
@@ -162,7 +190,6 @@ def data_align_v2(input_body_list, list_title):
                     if i == min_index:
                         list_out_child.append(input_body_list[k][0]['data'][l]['text'])
                         dict_out_child[list_title[k]] = input_body_list[k][0]['data'][l]['text']
-
 
                 if len(list_out_child) == k:
                     list_out_child.append('空')
@@ -206,9 +233,9 @@ def data_align_old(input_body_list, list_title):
 
     list_name_h_location = get_h_location_func(input_body_list[0][0]['data'])  # 确定项目名称高度坐标
     list_name_h_location_avg = []
-    for i in range(len(list_name_h_location)-1):
-        list_name_h_location_avg.append(list_name_h_location[i+1]-list_name_h_location[i])
-    judge_new = sum(list_name_h_location_avg)/(len(list_name_h_location_avg))
+    for i in range(len(list_name_h_location) - 1):
+        list_name_h_location_avg.append(list_name_h_location[i + 1] - list_name_h_location[i])
+    judge_new = sum(list_name_h_location_avg) / (len(list_name_h_location_avg))
     # 解决一行名字被识别为两项的情况（名字中间有过长空格，对处于同一高度的项目进行合并）
 
     list_invalid_name = []  # 记录无效项
@@ -315,6 +342,7 @@ def type_judge(lstKwds_need_judge, conf_path):
 def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     img_org = cvimg
     img_gamma = PRE_pross.gamma(img_org)
+    class_report = class_report_json()  # 定义类结构
 
     # 判断所属医院以及检验项目
     img_gamma = PRE_pross.image_border(img_input=img_gamma,
@@ -333,8 +361,10 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     # 取出医院关键词
     if hospital_lock == False:
         hospital = PRE_pross.charactor_match_hospital_name(report_overview, '医院')
+        class_report.hos_name = PRE_pross.charactor_match_hospital_name(report_overview, '医院')  # class
     if hospital_lock == True:
         hospital = '复旦大学附属华山医院'
+        class_report.hos_name = '复旦大学附属华山医院'  # class
     path_prefix = hospital
     # ocr会把间隔大的文字分开识别，大概率优先识别为中文字符
 
@@ -346,10 +376,11 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     if report_type_lock is False:
         report_type = type_judge(lstKwds_need_judge=report_overview,
                                  conf_path='conf')
-
+        class_report.repo_type = type_judge(lstKwds_need_judge=report_overview,
+                                            conf_path='conf')  # class
     if report_type_lock is True:
         report_type = '肺功能'
-
+        class_report.repo_type = '肺功能'  # class
     path_suffix = f'-{report_type}'
 
     conf_path = f'conf/{path_prefix}{path_suffix}.conf'
@@ -387,13 +418,19 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
         list_title.append(list_i)
 
     # 特征匹配准备裁剪
+
+    class_knn = class_knn_match_new()  # class
+
     # img_template = cv2.imread(img_feature_path, 0)
     img_template = PRE_pross.cv_imread_chs(img_feature_path)
+    class_knn.img_template = PRE_pross.cv_imread_chs(img_feature_path)  # class
+
     # 灰度化
     img_template = cv2.cvtColor(img_template, cv2.COLOR_BGR2GRAY)
     img_need_pross = cv2.cvtColor(img_gamma, cv2.COLOR_BGR2GRAY)
 
     img_small_1k, ratio = PRE_pross.zoom_to_1k(img_need_pross)  # 屏幕匹配提速
+    class_knn.img_need_match = PRE_pross.zoom_to_1k(img_need_pross)  # class
 
     # [旧]correct_points, knn_result = knn_match_old(img_template, img_small_1k, demo)
     correct_matrix, knn_result = PRE_pross.knn_match_new(template_img=img_template,
@@ -441,6 +478,17 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
         patient_age = re.sub(r'.*：', '年龄：', patient_age)
     else:
         patient_name = '年龄：'
+
+    repo_date = PRE_pross.charactor_match_count_name_age(usr_info_overview, '报告日期：')
+    if repo_date:
+        repo_date = re.sub(r'.*：', '报告日期：', repo_date)
+    else:
+        repo_date = PRE_pross.charactor_match_count_name_age(usr_info_overview, '报告时间：')
+        if repo_date:
+            repo_date = re.sub(r'.*：', '报告时间：', repo_date)
+        else:
+            repo_date = '报告日期：'
+
     # 用户信息识别结束
 
     img_screen_cut = PRE_pross.length_width_ratio_correct(img_template=img_template,
@@ -520,6 +568,7 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
         bloodtest_list.append(bloodtest_single)
 
     # 加入附加信息
+    '''
     bloodtest_single = OrderedDict()
     bloodtest_single["name"] = f'{hospital}{path_suffix}'
     bloodtest_single["value"] = patient_name
@@ -527,9 +576,16 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     bloodtest_single["alias"] = '空白信息2'
     bloodtest_single["unit"] = patient_age
     bloodtest_list.append(bloodtest_single)
+    '''
     test_dict = {
-        'version': "0.3",
+        'hospital': f'{hospital}',
+        'repo_type': f'{path_suffix}',
+        'repo_date': f'{repo_date}',
+        'name': f'{patient_name}',
+        'age': f'{patient_age}',
+        'sex': f'{patient_sex}',
         'bloodtest': bloodtest_list,
+        'write_time': f'{datetime.now()}',
         'explain': {
             'used': True,
             'details': "json生成测试",
