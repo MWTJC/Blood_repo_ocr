@@ -2,7 +2,7 @@
 ## 安装
 1. 下载并解压此项目
 
-2. 此项目建议使用Python3.6，为方便管理，建议使用虚拟环境（venv（或称为pipenv）或者Anaconda皆可）
+2. 此项目建议使用Python3.7，为方便管理，建议使用虚拟环境（venv（或称为pipenv）或者Anaconda皆可）
 
 + 虚拟环境建议优先使用pipenv，按照“Pipfile”安装所需组件。也可以使用conda，按照“requirements.txt”安装所需组件。
 
