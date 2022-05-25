@@ -81,9 +81,9 @@ def upload():
             '''
 
             report_data_str = MAIN_PROSS.main_pross(cvimg=img,
-                                                demo_or_not=demo_or_not,
-                                                hospital_lock=False,
-                                                report_type_lock=False)
+                                                    demo_or_not=demo_or_not,
+                                                    hospital_lock=False,
+                                                    report_type_lock=False)
             # 判断是否报错，中文开头为错误
 
             err_or_not = PRE_pross.charactor_match_chinese_head(report_data_str)
@@ -104,7 +104,6 @@ def upload():
 
             with open('test_data.json', 'r') as f:
                 db_data = json.load(f)
-
 
             with open(path_img_toDB, "rb") as f:
                 if f is None:

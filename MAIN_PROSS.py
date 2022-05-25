@@ -24,6 +24,7 @@ from collections import defaultdict, OrderedDict
 import PRE_pross
 import configparser
 from datetime import datetime
+import threading
 
 
 class configparser_custom(configparser.ConfigParser):  # 解决默认被转换为小写问题
@@ -75,11 +76,12 @@ def cv2_to_base64(image):
     return base64.b64encode(data.tobytes()).decode('utf8')
 
 
-def net_OCR(cvimg):
+def net_OCR(cvimg, ip_port=''):
     # 发送HTTP请求
     data = {'images': [cv2_to_base64(cvimg)]}
     headers = {"Content-type": "application/json"}
-    url = "http://127.0.0.1:8866/predict/chinese_ocr_db_crnn_server"
+    # url = f"http://127.0.0.1:8866/predict/chinese_ocr_db_crnn_server"
+    url = f"http://{ip_port}/predict/chinese_ocr_db_crnn_server"
     try:
         r = requests.post(url=url, headers=headers, data=json.dumps(data))
     except ConnectionRefusedError:
@@ -344,10 +346,16 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     img_gamma = PRE_pross.gamma(img_org)
     class_report = class_report_json()  # 定义类结构
 
+    OCR_IP_PATH = 'conf/OCR_IP.conf'
+    conf_ocr_ip = configparser_custom()
+    conf_ocr_ip.read(OCR_IP_PATH, 'UTF-8')
+    ocr_ip_t = conf_ocr_ip.items("ip")
+    ocr_ip = ocr_ip_t[0][1]
+
     # 判断所属医院以及检验项目
     img_gamma = PRE_pross.image_border(img_input=img_gamma,
                                        dst='0')
-    pre_response = net_OCR(img_gamma)
+    pre_response = net_OCR(img_gamma, ocr_ip)
     if pre_response is 'OCROFFLINE':
         return '错误：OCR离线'
     elif len(pre_response.json()["results"]) == 0:
@@ -452,7 +460,7 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     cv2.imwrite('temp/region.jpg', img_screen_cut_1k)  # 适配开源血常规
 
     # 将用户信息识别滞后，提升识别概率
-    usr_info_response = net_OCR(img_screen_cut_1k)
+    usr_info_response = net_OCR(img_screen_cut_1k, ocr_ip)
     if usr_info_response is 'OCROFFLINE':
         return '错误：OCR离线'
     elif len(usr_info_response.json()["results"]) == 0:
@@ -507,7 +515,7 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     # 取得识别结果
     answer = []
     for n in range(len(img_element)):
-        response = net_OCR(img_element[n])
+        response = net_OCR(img_element[n], ocr_ip)
         if response is 'OCROFFLINE':
             return '错误：OCR离线'
         elif len(response.json()["results"]) == 0:

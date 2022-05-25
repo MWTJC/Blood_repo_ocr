@@ -189,12 +189,12 @@ class ChineseOCRDBCRNNServer(hub.Module):
     def recognize_text(self,
                        images=[],
                        paths=[],
-                       use_gpu=False,
-                       output_dir='ocr_result',
-                       visualization=False,
+                       use_gpu=True,
+                       output_dir='temp/ocr_result',
+                       visualization=True,
                        box_thresh=0.5,
                        text_thresh=0.5,
-                       angle_classification_thresh=0.9):
+                       angle_classification_thresh=0.1):
         """
         Get the chinese texts in the predicted images.
         Args:
