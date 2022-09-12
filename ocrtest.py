@@ -4,6 +4,7 @@ import cv2
 from pprint import pprint
 
 if __name__ == '__main__':
+    ip = '127.0.0.1:8080'
     img = cv2.imread('OCR_IMG\\Input_IMG\\zs-blood3.jpg')
     pre_response = MAIN_PROSS.net_OCR(img, ip)
     if pre_response is 'OCROFFLINE':

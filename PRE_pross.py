@@ -25,6 +25,9 @@ class configparser_custom(configparser.ConfigParser):  # 解决默认被转换�
 
 # 透视变换类
 def order_points(pts):
+    """
+
+    """
     # 一共四个坐标点
     rect = np.zeros((4, 2), dtype='float32')
     # 按顺序找到对应的坐标0123 分别是左上，右上，右下，左下
@@ -43,6 +46,11 @@ def order_points(pts):
 
 
 def four_point_transform(image, pts):
+    """
+    此处导入需要进行透视变换的图片与具体变换坐标
+    返回cv2格式的变换后的图片
+    :return: cv2.img
+    """
     # 获取输入坐标点
     rect = order_points(pts)
     (tl, tr, br, bl) = rect
@@ -56,7 +64,8 @@ def four_point_transform(image, pts):
     heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
     maxHeight = max(int(heightA), int(heightB))
 
-    # 变化后对应坐标位置
+    # 变化后对应坐标位置，需求案例，异常处理逻辑，通信协议，多任务（通信），实验报告（测试报告，通信协议）视频， 工程代码
+    # 两个文档，工程代码包，16周5下午截止
     dst = np.array([
         [0, 0],
         [maxWidth - 1, 0],

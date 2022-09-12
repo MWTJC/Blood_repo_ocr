@@ -1,31 +1,22 @@
 # coding=utf-8
-
-# from PIL import Image
-from pprint import pprint
-from glob import glob
+from datetime import datetime
 from string import digits
 import re
-
-import numpy
-import requests
-import json
-import cv2
-import base64
-import matplotlib.pyplot as plt
-
-from colorama import init, Fore, Back
-
-init(autoreset=True)
-
-plt.switch_backend('agg')
-import shutil
 import os
-from collections import defaultdict, OrderedDict
+import shutil
+from glob import glob
+import numpy
+import numpy as np
+import requests
+import cv2
+import json
+import base64
 import PRE_pross
 import configparser
-from datetime import datetime
-
+from colorama import init, Fore, Back
+init(autoreset=True)
 from concurrent.futures import ThreadPoolExecutor
+from collections import defaultdict, OrderedDict
 
 
 class configparser_custom(configparser.ConfigParser):  # 解决默认被转换为小写问题
@@ -46,37 +37,150 @@ class configparser_custom(configparser.ConfigParser):  # 解决默认被转换�
         return d
 
 
-class ClassSendtoOcr(object):  # 定义送入ocr的class结构
+class OCR_Pack(object):
+    def __init__(self, knn_img_model: numpy.ndarray, knn_img_need_match: numpy.ndarray):
+        self.img_model = knn_img_model
+        self.img_need_match = knn_img_need_match
+
+
+    def knn(img_model, img_need_match):
+        MIN_MATCH_COUNT = 10
+        # SIFT检测角点
+        sift = cv2.SIFT_create()
+        # 关键点和特征值
+        kp1, des1 = sift.detectAndCompute(img_model, None)
+        kp2, des2 = sift.detectAndCompute(img_need_match, None)
+        # FLANN匹配
+        index_params = dict(algorithm=1, trees=5)
+        search_params = dict(checks=50)
+        flann = cv2.FlannBasedMatcher(index_params, search_params)
+        # 使用KNN算法匹配
+        matches = flann.knnMatch(des1, des2, k=2)
+        # 去除错误匹配
+        good = []
+        for m, n in matches:
+            if m.distance < 0.7 * n.distance:
+                good.append(m)
+
+        # 单应性
+        if len(good) > MIN_MATCH_COUNT:
+            result = 1
+            print(Fore.LIGHTBLUE_EX + f"匹配结果 - {len(good)}/{MIN_MATCH_COUNT}")
+            # 改变数组的表现形式，不改变数据内容，数据内容是每个关键点的坐标位置
+            src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
+            dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
+            # findHomography 函数是计算变换矩阵
+            # 参数cv2.RANSAC是使用RANSAC算法寻找一个最佳单应性矩阵H，即返回值M
+            # 返回值：M 为变换矩阵，mask是掩模
+            M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+            if M is None:
+                print(Back.RED + '畸形匹配')
+                dst = 0
+                result = 2874734
+                return dst, result
+            '''
+            if demo == 1:
+                # ravel方法将数据降维处理，最后并转换成列表格式
+                matchesMask = mask.ravel().tolist()
+                # 获取img1的图像尺寸
+                h, w = template_img.shape
+                # pts是图像img1的四个顶点
+                pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
+                # 计算变换后的四个顶点坐标位置
+                dst = cv2.perspectiveTransform(pts, M)
+                # print(dst)
+                # 画出变换后的边框
+                img_need_match = cv2.polylines(img_need_match, [np.int32(dst)], True, (0, 0, 255), 1, cv2.LINE_AA)
+            '''
+        else:
+            print(Fore.RED + f"不甚匹配 - {len(good)}/{MIN_MATCH_COUNT}")
+            '''
+            if demo == 1:
+                plt.imshow(img_need_match, 'gray'), plt.show()
+            '''
+            dst = 0
+            result = 2874734
+            return dst, result
+            # matchesMask = None
+        '''
+        if demo == 1:
+            # 显示匹配结果
+            draw_params = dict(matchColor=(0, 255, 0),  # 绿色绘制线条
+                               singlePointColor=None,
+                               matchesMask=matchesMask,  # 仅绘制有效匹配
+                               flags=2)
+            img3 = cv2.drawMatches(template_img, kp1, img_need_match, kp2, good, None, **draw_params)
+            cv2.imwrite('temp/DEMO/knn.jpg', img3)
+        '''
+        # print('匹配完毕...')
+        return np.linalg.inv(M), result
+
+
+class Img(object):
     """
     此处导入使用class包装的CV格式图片和OCR识别服务器地址及端口，
     """
+    # m_OCR_Pack = OCR_Pack()
 
-    def __init__(self, cvimg: numpy.ndarray, ipaddr: str):
-        self.img_send = cvimg
-        self.address = ipaddr
+    def __init__(self, img_f:numpy.ndarray, IP_Address: str):
+        self.img_f = img_f
+        self.IP_Address = IP_Address
+        self.img_s = str
 
-    def send(self):  # 原net_ocr_class
+    def Send_To_OCR(self):  # 原net_ocr_class
         """
         此处导入使用class包装的CV格式图片和OCR识别服务器地址及端口，
         使用了py.requests包实现http发送功能，
         接收远程返回的json报文并直接返回。
         :return: str
         """
+
+        def cv2_to_base64(image):
+            """
+            此处导入CV格式图片，
+            使用了py.opencv.imdecode包实现图片转换，
+            返回base64形式的图片信息。
+            :return: str
+            """
+            data = cv2.imencode('.jpg', image)[1]
+            return base64.b64encode(data.tobytes()).decode('utf8')
+
         # 发送HTTP请求
-        data = {'images': [cv2_to_base64(self.img_send)]}
+        data = {'images': [cv2_to_base64(self.img_f)]}
         headers = {"Content-type": "application/json"}
         # url = f"http://127.0.0.1:8866/predict/chinese_ocr_db_crnn_server"
-        url = f"http://{self.address}/predict/chinese_ocr_db_crnn_mobile"
+        url = f"http://{self.IP_Address}/predict/chinese_ocr_db_crnn_mobile"
         try:
-            r = requests.post(url=url, headers=headers, data=json.dumps(data))
+            img_s = requests.post(url=url, headers=headers, data=json.dumps(data))
         except ConnectionRefusedError:
-            r = 'OCROFFLINE'
-            print(r)
+            img_s = 'OCROFFLINE'
+            print(img_s)
         except requests.exceptions.ConnectionError:
-            r = 'OCROFFLINE'
-            print(r)
-        # pprint(r)
-        return r
+            img_s = 'OCROFFLINE'
+            print(img_s)
+        # pprint(img_s)
+        return img_s
+
+
+class Single_Check_Item(object):
+    def __init__(self, Code_Name: str, Ratio: str, Refer_Range: str, Unit: str, Value: str):
+        self.Code_Name = Code_Name
+        self.Ratio = Ratio
+        self.Refer_Range = Refer_Range
+        self.Unit = Unit
+        self.Value = Value
+
+
+class Report_Paper(object):
+    def __init__(self, Age: str, Check_Item: list, Hos_name: str, Name: str, Report_Date: str, Report_ID: int, Report_type: str, Sex: str):
+        self.age = Age
+        self.items = Check_Item
+        self.hospital = Hos_name
+        self.name = Name
+        self.repo_date = Report_Date
+        self.repo_ID = Report_ID
+        self.repo_type = Report_type
+        self.sex = Sex
 
 
 class AnswerToReport(object):
@@ -239,131 +343,6 @@ class AnswerToReport(object):
         return bloodtest_list
 
 
-class ClassReportJson:
-    def __init__(self):
-        self.hos_name = ''  # 所属医院
-        self.repo_type = ''  # 报告类型
-        self.name = ''  # 姓名
-        self.age = ''  # 年龄
-        self.sex = ''  # 性别
-        self.repo_data = ''  # 报告时间
-
-        self.list = []  # todo 详细内容列表
-
-
-def cv2_to_base64(image):
-    """
-    此处导入CV格式图片，
-    使用了py.opencv.imdecode包实现图片转换，
-    返回base64形式的图片信息。
-    :return: str
-    """
-    data = cv2.imencode('.jpg', image)[1]
-    return base64.b64encode(data.tobytes()).decode('utf8')
-
-
-def data_align_old(input_body_list, list_title):
-    '''
-    此处导入识别主体list和每一列的数据名称
-    :return: list
-    '''
-    # todo 如何改进定义严格程度使更精准（单位像素）
-    judge = 13
-    # 初始化输出列表
-    list_out = []
-    dict_out = []
-
-    # 确定每行共有多少列
-    number_of_columns = len(input_body_list)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
-
-    # number_of_columns = int(len(input_list)/2)  # 此时input_list[numb...]和input_list[0]为检测项目名字，即对齐依据
-
-    def get_h_location_func(child_list_input):
-        list_name_h_location_output = []
-        for i in range(len(child_list_input)):  # 遍历第一次识别的所有结果
-
-            h_u = 0.5 * (float(child_list_input[i]['text_box_position'][0][1]) +
-                         float(child_list_input[i]['text_box_position'][1][1]))
-            h_d = 0.5 * (float(child_list_input[i]['text_box_position'][2][1]) +
-                         float(child_list_input[i]['text_box_position'][3][1]))
-            h_location = 0.5 * (h_u + h_d)  # 确定每一项的高度位置(取4个点的竖座标取平均值)
-            list_name_h_location_output.append(h_location)
-        return list_name_h_location_output
-
-    list_name_h_location = get_h_location_func(input_body_list[0][0]['data'])  # 确定项目名称高度坐标
-    list_name_h_location_avg = []
-    for i in range(len(list_name_h_location) - 1):
-        list_name_h_location_avg.append(list_name_h_location[i + 1] - list_name_h_location[i])
-    judge_new = sum(list_name_h_location_avg) / (len(list_name_h_location_avg))
-    # 解决一行名字被识别为两项的情况（名字中间有过长空格，对处于同一高度的项目进行合并）
-
-    list_invalid_name = []  # 记录无效项
-    for i in range(len(list_name_h_location)):
-        if i in list_invalid_name:
-            pass
-        else:
-            for j in range(len(list_name_h_location)):
-                if j <= i:
-                    pass
-                else:
-                    if abs(list_name_h_location[i] - list_name_h_location[j]) < judge_new:
-                        list_invalid_name.append(j)
-
-    list_name_correct = []
-    list_name_position_correct = []
-    for i in range(len(input_body_list[0][0]['data'])):
-        if i in list_invalid_name:
-            for n in range(4):  # 往前推，合并到最近的正常项
-                if i - 1 - n in list_invalid_name:
-                    pass
-                else:
-                    list_name_correct[-1] = list_name_correct[-1] + ' ' + (
-                        input_body_list[0][0]['data'][i]['text'])  # 向前合并
-                    break
-            pass
-        else:
-            list_name_correct.append(input_body_list[0][0]['data'][i]['text'])  # 第一次组合，先填入行名字(检测项目名)
-            list_name_position_correct.append(list_name_h_location[i])
-    for i in range(len(list_name_correct)):  # 以下开始组合每一条数据
-        list_out_child = []
-
-        dict_out_child = dict()
-
-        list_out_child.append(list_name_correct[i])  # 确定第一项：名字
-
-        dict_out_child[list_title[0]] = list_name_correct[i]
-
-        for k in range(1, number_of_columns):
-
-            if len(input_body_list[k][0]['data']) == 0:
-                list_out_child.append('空')
-
-                dict_out_child[list_title[k]] = '空'
-
-                pass
-            else:
-                list_diy_h_location = get_h_location_func(input_body_list[k][0]['data'])  # 确定其他项的高度
-                for l in range(len(list_diy_h_location)):
-                    if abs(list_name_position_correct[i] - list_diy_h_location[l]) < judge_new:  # todo 如何判断高度最近
-                        list_out_child.append(input_body_list[k][0]['data'][l]['text'])
-
-                        dict_out_child[list_title[k]] = input_body_list[k][0]['data'][l]['text']
-
-                        break
-                    else:
-                        pass
-                if len(list_out_child) == k:
-                    list_out_child.append('空')
-
-                    dict_out_child[list_title[k]] = '空'
-
-        list_out.append(list_out_child)
-
-        dict_out.append(dict_out_child)
-
-    return list_out, dict_out
-
-
 def read_keywords(path):
     """
     此处导入包含报告关键词的conf文件路径，
@@ -409,9 +388,13 @@ def type_judge(lstKwds_need_judge=list, conf_path=str):
 
 
 def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
+
     img_org = cvimg
     img_gamma = PRE_pross.gamma(img_org)
-    class_report = ClassReportJson()  # 定义类结构
+
+    cv2.imwrite('temp/DEMO/gamma.jpg', img_gamma)
+
+    class_report = Report_Paper  # 定义类结构
 
     OCR_IP_PATH = 'conf/OCR_IP.conf'
     conf_ocr_ip = configparser_custom()
@@ -429,8 +412,8 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     pre_response = net_OCR_class(ocr_pack)
     '''
 
-    first_recg = ClassSendtoOcr(cvimg=img_gamma, ipaddr=ocr_ip)
-    pre_response = first_recg.send()
+    img_org = Img(IP_Address=ocr_ip, img_f=cvimg)
+    pre_response = img_org.Send_To_OCR()
 
     if pre_response is 'OCROFFLINE':
         return '错误：OCR离线'
@@ -503,7 +486,6 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
 
     # 特征匹配准备裁剪
 
-
     # img_template = cv2.imread(img_feature_path, 0)
     img_template = PRE_pross.cv_imread_chs(img_feature_path)
 
@@ -513,6 +495,7 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
 
     img_small_1k, ratio = PRE_pross.zoom_to_1k(img_need_pross)  # 屏幕匹配提速
 
+    cv2.imwrite('temp/DEMO/1k.jpg', img_small_1k)
     # [旧]correct_points, knn_result = knn_match_old(img_template, img_small_1k, demo)
     correct_matrix, knn_result = PRE_pross.knn_match_new(template_img=img_template,
                                                          img_need_match=img_small_1k,
@@ -534,8 +517,9 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
 
     # 将用户信息识别滞后，提升识别概率
 
-    last_recg = ClassSendtoOcr(img_screen_cut_1k, ocr_ip)
-    usr_info_response = last_recg.send()
+    class_img_screen_cut_1k = Img(IP_Address=ocr_ip, img_f=img_screen_cut_1k)
+
+    usr_info_response = class_img_screen_cut_1k.Send_To_OCR()
 
     if usr_info_response is 'OCROFFLINE':
         return '错误：OCR离线'
@@ -607,7 +591,7 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     answer = []
     '''
     # 非多线程
-    
+
     for n in range(len(img_element)):
         response = net_OCR(img_element[n], ocr_ip)
         if response is 'OCROFFLINE':
@@ -625,8 +609,8 @@ def main_pross(cvimg, demo_or_not, hospital_lock, report_type_lock):
     answer_muity = [0] * (len(img_element))
     jobs = [0] * (len(img_element))
     for n in range(len(img_element)):
-        rec_element = ClassSendtoOcr(img_element[n], ocr_ip)
-        jobs[n] = ocr_pool.submit(rec_element.send)
+        rec_element = Img(IP_Address=ocr_ip, img_f=img_element[n])
+        jobs[n] = ocr_pool.submit(rec_element.Send_To_OCR)
     ocr_pool.shutdown(wait=True)
     # 多线程结束
 

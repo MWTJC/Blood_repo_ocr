@@ -21,7 +21,8 @@ import shutil
 import os
 
 import PRE_pross
-import MAIN_PROSS
+# import MAIN_PROSS
+import MAIN_PROSS_re
 
 app = Flask(__name__, static_url_path="")
 app.secret_key = '123456'
@@ -58,7 +59,14 @@ def index():
     return redirect('/index.html')
 
 
-@app.route('/upload', methods=['POST'])
+# @app.route('/upload', methods=['POST'])
+
+
+@app.route('/upload/<name1>,<name2>', methods=['POST'])
+def name(name1, name2):
+    return name1 + ' ' + name2
+
+
 def upload():
     time_start = time.time()
     if request.method == 'POST':
@@ -79,11 +87,16 @@ def upload():
             img2 = cv2.imread('tes.jpg')
             # todo 是否需要本地存储中转
             '''
-
+            '''
             report_data_str = MAIN_PROSS.main_pross(cvimg=img,
                                                     demo_or_not=demo_or_not,
                                                     hospital_lock=False,
                                                     report_type_lock=False)
+            '''
+            report_data_str = MAIN_PROSS_re.main_pross(cvimg=img,
+                                                       demo_or_not=demo_or_not,
+                                                       hospital_lock=False,
+                                                       report_type_lock=False)
             # 判断是否报错，中文开头为错误
 
             err_or_not = PRE_pross.charactor_match_chinese_head(report_data_str)
